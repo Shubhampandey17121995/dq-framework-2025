@@ -1,5 +1,6 @@
 from common.constants import VAR_S3_EXECUTION_RESULT_PATH
 
+
 def save_results(result_data_dict):
         """
         Store the given result data at execution result table/location

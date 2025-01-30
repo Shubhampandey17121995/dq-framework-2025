@@ -86,9 +86,9 @@ def duplicate_values_check(df,column_name):
             - return (none,true)
     """
 
-def refrence_value_check(df,column_name,refrence_value):
+def expected_value_check(df,column_name,expected_value):
     """
-    ensures that values in a column matches to expectedd value.
+    ensures that values in a column matches to expected value.
 
     args:
     df: dataframe conatining data.
