@@ -1,8 +1,11 @@
+import sys
+import os
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../")))
 from common.utils import fetch_execution_plan
-from utilities.apply_rules import apply_rules
-
+from Utilities.apply_rules import apply_rules
+"""
 def dq_execution(execution_plan_df, entity_data_df, rule_master_df):
-    """
+    
     In this function we will apply the dq on the actual data.
 
     args:
@@ -22,5 +25,26 @@ def dq_execution(execution_plan_df, entity_data_df, rule_master_df):
         
         4. print how many rules passed from total rules in list. Also log the result.
             
-    """
+"""
+
+def dq_execution(execution_plan_df, rules_df, entity_df):
+    try:
+        plan_list = fetch_execution_plan(execution_plan_df)
+        
+        track_list = apply_rules(entity_df, rules_df, plan_list)
+        
+        if track_list:
+            if track_list.count(1) > 0:
+                print(f"DQ execution has been failed for critical rules. {track_list.count(1)} critical rules failed out of {len(plan_list)} rules. Hence failing the process")
+                return False
+            elif track_list.count(0) > 0:
+                print(f"DQ execution has been failed for non-critical rules. {track_list.count(0)} non-critical rules failed out of {len(plan_list)} rules. Hence failing the process")
+                return False
+        
+        print("DQ execution has been completed successfully!")
+        return True
+        
+    
+    except Exception as e:
+        print(e)
 
