@@ -1,10 +1,17 @@
-from utilities.execution_result_saver import save_results
+import sys
+import os
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../")))
+from Utilities.execution_result_saver import save_result_records
 from common.error_saver import save_error_records
+from common.constants import VAR_ERROR_RECORD_PATH
+from common.constants import VAR_EXECUTION_RESULT_PATH
+from common.constants import schema
+from datetime import datetime
+import importlib
 
-
-
+"""
 def apply_rules(entity_data_df, rule_master_df,execution_plan_list):
-        """
+
         This function will apply rules on actual_entity_data.
         The list contains the list of the plans.
 
@@ -50,14 +57,75 @@ def apply_rules(entity_data_df, rule_master_df,execution_plan_list):
         
         Output:
         track_list: this list contains the 0's and 1's, where 0= rule failed and 1= rules passed.
-        """
-
-
 """
-import importlib
 
-module = importlib.import_module("rules.inbuilt_rules")
-rule_function = getattr(module,"null_check")
 
-rule_function(df = [], column_name = "")
-"""
+
+def apply_rules(entity_data_df, rules_master_df, execution_plan_list):
+        try:
+                track_list = []
+                err_path = f"{VAR_ERROR_RECORD_PATH}{datetime.now().year}/{datetime.now().month}/{datetime.now().day}/{plan[2]}"
+                result_path = f"{VAR_EXECUTION_RESULT_PATH}{datetime.now().year}/{datetime.now().month}/{datetime.now().day}/{plan[2]}"
+                
+                for plan in execution_plan_list:
+                        var_rule_id = plan[1]
+                        var_column_name = plan[3]
+                        var_parameters = plan[4]
+                        var_is_critical = plan[5]
+                        rule_name = rules_master_df.filter(rules_master_df.rule_id == var_rule_id).collect()[0][1]
+                        
+                        result_data = {
+                                "ep_id" : plan[0],
+                                "rule_id" : var_rule_id,
+                                "entity_id" : plan[2],
+                                "column_name":var_column_name,
+                                "is_critical" : var_is_critical,
+                                "parameter_value" : var_parameters,
+                                "actual_value" : "",
+                                "total_records" : entity_data_df.count(),
+                                "failed_records_count":0,
+                                "er_status" : "Pass",
+                                "error_records_path" : "",
+                                "error_message" : "",
+                                "execution_timestamp" : datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                                "year" : datetime.now().year,
+                                "month" : datetime.now().month,
+                                "day" : datetime.now().day
+                        }
+                        try:
+                                module = importlib.import_module("Rules.inbuilt_rules")
+                                rule_function = getattr(module,rule_name)
+                                result = rule_function(entity_data_df, var_column_name)
+                                
+                                if result[1]:
+                                        row_data = Row(**result_data)
+                                        result_df = spark.createDataFrame([row_data],schema)
+                                        save_result_records(result_df, result_path,plan[2])
+                                        pass
+                                else:
+                                        error_records_df = result[0]
+                                        result_data["er_status"] = "Fail"
+                                        result_data["failed_records_count"] = error_records_df.count()
+                                        result_data["error_message"] = f"Null values found in {var_column_name}"
+                                        result_data["error_records_path"] = err_path
+                                        
+                                        row_data = Row(**result_data)
+                                        result_df = spark.createDataFrame([row_data],schema)
+                                        save_result_records(result_df, result_path,plan[2])
+                                        
+                                        save_error_records(error_records_df, err_path, plan[2])
+                                        
+                                        if var_is_critical == "Y":
+                                                track_list.append(1)
+                                                #logger.error(f"critical rule {rule_name} failed for {var_column_name}.Column {column_name} contains null values.Please make correct entries in the column {column_name} to proceed further")
+                                        else:
+                                                track_list.append(0)
+                                                #logger.error(f"non-critical rule {rule_name} failed for {var_column_name}.Column {column_name} contains null values.Please make correct entries in the column {column_name} to proceed further")
+                        
+                        except Exception as e:
+                                print(e)
+                        
+                return track_list
+                
+        except Exception as e:
+                print(e)

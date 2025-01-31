@@ -1,7 +1,10 @@
-from common.constants import VAR_S3_EXECUTION_RESULT_PATH
+import sys
+import os
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../")))
+from common.constants import VAR_EXECUTION_RESULT_PATH
+from datetime import datetime
 
-
-def save_results(result_data_dict):
+def save_result_records(result_df,entity_id):
         """
         Store the given result data at execution result table/location
 
@@ -14,3 +17,15 @@ def save_results(result_data_dict):
                 3. create the path to store result.
                 4. save the df at s3 location, partitioned by Y/M/D/entity_id
         """
+        try:
+                path = f"{VAR_EXECUTION_RESULT_PATH}{datetime.now().year}/{datetime.now().month}/{datetime.now().day}/{entity_id}"
+                result_df.write.mode('append').format('').save(path)
+        except Exception as e:
+                print(e)
+
+
+"""
+entity_id = 10
+path = f"{VAR_S3_EXECUTION_RESULT_PATH}{datetime.now().year}/{datetime.now().month}/{datetime.now().day}/{entity_id}"
+print(path)
+"""

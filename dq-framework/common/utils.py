@@ -52,6 +52,11 @@ def fetch_execution_plan(execution_plan_df):
         Output :
             list: A list of tuples of plan info e.g. execution_plan_list[(rule_id, column_name, paramaters, is_critical, etc.)]
     """
+    try:
+        plan_list = [tuple(row) for row in execution_plan_df.filter(execution_plan_df.is_active == "Y").collect()]
+        return plan_list
+    except Exception as e:
+        print(f"Exception occured: {e}")
 
 # fetch path from entity master table path
 def fetch_entity_path(entity_master_df):
