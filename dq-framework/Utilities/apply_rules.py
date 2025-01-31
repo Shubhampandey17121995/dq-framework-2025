@@ -1,6 +1,8 @@
 import sys
 import os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../")))
+from pyspark.sql import Row
+from pyspark.sql import SparkSession
 from Utilities.execution_result_saver import save_result_records
 from common.error_saver import save_error_records
 from common.constants import VAR_ERROR_RECORD_PATH
@@ -63,17 +65,15 @@ def apply_rules(entity_data_df, rule_master_df,execution_plan_list):
 
 def apply_rules(entity_data_df, rules_master_df, execution_plan_list):
         try:
-                track_list = []
-                err_path = f"{VAR_ERROR_RECORD_PATH}{datetime.now().year}/{datetime.now().month}/{datetime.now().day}/{plan[2]}"
-                result_path = f"{VAR_EXECUTION_RESULT_PATH}{datetime.now().year}/{datetime.now().month}/{datetime.now().day}/{plan[2]}"
-                
+                track_list = []                
                 for plan in execution_plan_list:
                         var_rule_id = plan[1]
                         var_column_name = plan[3]
                         var_parameters = plan[4]
                         var_is_critical = plan[5]
                         rule_name = rules_master_df.filter(rules_master_df.rule_id == var_rule_id).collect()[0][1]
-                        
+                        err_path = f"{VAR_ERROR_RECORD_PATH}{datetime.now().year}/{datetime.now().month}/{datetime.now().day}/{plan[2]}"
+                        result_path = f"{VAR_EXECUTION_RESULT_PATH}{datetime.now().year}/{datetime.now().month}/{datetime.now().day}/{plan[2]}"
                         result_data = {
                                 "ep_id" : plan[0],
                                 "rule_id" : var_rule_id,
@@ -93,15 +93,18 @@ def apply_rules(entity_data_df, rules_master_df, execution_plan_list):
                                 "day" : datetime.now().day
                         }
                         try:
-                                module = importlib.import_module("Rules.inbuilt_rules")
+                                module = importlib.import_module("rules.inbuilt_rules")
                                 rule_function = getattr(module,rule_name)
-                                result = rule_function(entity_data_df, var_column_name)
-                                
+
+                                if not var_parameters:
+                                        result = rule_function(entity_data_df, var_column_name)
+                                else:
+                                        result = rule_function(entity_data_df, var_column_name,var_parameters)
+
                                 if result[1]:
                                         row_data = Row(**result_data)
                                         result_df = spark.createDataFrame([row_data],schema)
                                         save_result_records(result_df, result_path,plan[2])
-                                        pass
                                 else:
                                         error_records_df = result[0]
                                         result_data["er_status"] = "Fail"
