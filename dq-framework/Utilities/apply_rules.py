@@ -6,7 +6,6 @@ from pyspark.sql import SparkSession
 from Utilities.execution_result_saver import save_result_records
 from common.error_saver import save_error_records
 from common.constants import VAR_ERROR_RECORD_PATH
-from common.constants import VAR_EXECUTION_RESULT_PATH
 from common.constants import schema
 from datetime import datetime
 import importlib
@@ -75,15 +74,17 @@ def apply_rules(entity_data_df, rules_master_df, execution_plan_list,spark):
                         var_is_critical = plan[5]
 
                         if entity_data_df.count() == 0:
-                                return f"Dataframe is Empty for entity_id {plan[2]}.Please make sure data exists for dataframe at source for entity_id {plan[2]}"
+                                return f"Dataframe is Empty for entity_id {plan[2]}.Make sure data exists for dataframe at source for entity_id {plan[2]}"
                         
                         if var_column_name not in entity_data_df.columns:
                                 return f"Column {var_column_name} does not exists in dataframe for entity_id {plan[2]}. Make sure column {var_column_name} exists in the dataframe for entity_id {plan[2]}"
                         
                         rule_name = rules_master_df.filter(rules_master_df.rule_id == var_rule_id).collect()[0][1]
-
-                        err_path = f"{VAR_ERROR_RECORD_PATH}{datetime.now().year}/{datetime.now().month}/{datetime.now().day}/{plan[2]}"
-                        result_path = f"{VAR_EXECUTION_RESULT_PATH}{datetime.now().year}/{datetime.now().month}/{datetime.now().day}/{plan[2]}"
+                        module = importlib.import_module("Rules.inbuilt_rules")
+                        if not hasattr(module,rule_name):
+                                track_list.append(1 if var_is_critical == "Y" else 0)
+                                logger.error(f"Rule function {rule_name.__name__} for rule_id {var_rule_id} does not exists in {module}, Skipping the rule. Please make sure function {rule_name.__name__} exists in module {module}.")
+                                continue
 
                         result_data = {
                                 "ep_id" : int(plan[0]),
@@ -105,12 +106,6 @@ def apply_rules(entity_data_df, rules_master_df, execution_plan_list,spark):
                         }
 
                         try:
-                                module = importlib.import_module("Rules.inbuilt_rules")
-                                if not hasattr(module,rule_name):
-                                        track_list.append(1 if var_is_critical == "Y" else 0)
-                                        logger.error(f"Rule function {rule_name} for rule_id {var_rule_id} does not exists in {module}, Skipping the rule. Please make sure function {rule_name} exists in module {module}.")
-                                        continue
-
                                 rule_function = getattr(module,rule_name)
 
                                 if not var_parameters:
@@ -121,30 +116,33 @@ def apply_rules(entity_data_df, rules_master_df, execution_plan_list,spark):
                                 if result[1]:
                                         row_data = Row(**result_data)
                                         result_df = spark.createDataFrame([row_data],schema)
-                                        save_result_records(result_df, result_path,plan[2])
+                                        save_result_records(result_df,plan[2])
                                 else:
                                         if result[0] == "EXCEPTION":
                                                 track_list.append(1 if var_is_critical == "Y" else 0)
                                                 logger.error(result[2])
+                                                logger.debug(f"Skipping the application of rule {rule_name.__name__} for rule_id {var_rule_id}, Please check {rule_function.__name__} function logs.")
+                                                continue
 
                                         error_records_df = result[0]
+                                        
                                         result_data["er_status"] = "Fail"
                                         result_data["failed_records_count"] = error_records_df.count()
                                         result_data["error_message"] = result[2]
-                                        result_data["error_records_path"] = err_path
+                                        result_data["error_records_path"] = f"{VAR_ERROR_RECORD_PATH}{datetime.now().year}/{datetime.now().month}/{datetime.now().day}/{plan[2]}"
                                         
                                         row_data = Row(**result_data)
                                         result_df = spark.createDataFrame([row_data],schema)
-                                        save_result_records(result_df, result_path,plan[2])
+                                        save_result_records(result_df,plan[2])
                                         
-                                        save_error_records(error_records_df, err_path, plan[2])
+                                        save_error_records(error_records_df, plan[2])
                                         
                                         if var_is_critical == "Y":
                                                 track_list.append(1)
-                                                logger.error(f"critical rule {rule_name} failed for {var_column_name}.Column {var_column_name} contains null values.Please make correct entries in the column {var_column_name} to proceed further")
+                                                logger.error(f"critical rule {rule_name} failed for {var_column_name} for entity_id {plan[2]}.")
                                         else:
                                                 track_list.append(0)
-                                                logger.error(f"non-critical rule {rule_name} failed for {var_column_name}.Column {var_column_name} contains null values.Please make correct entries in the column {var_column_name} to proceed further")
+                                                logger.error(f"non-critical rule {rule_name} failed for {var_column_name} for entity_id {plan[2]}.")
                         
                         except Exception as e:
                                 track_list.append(1 if var_is_critical == "Y" else 0)
