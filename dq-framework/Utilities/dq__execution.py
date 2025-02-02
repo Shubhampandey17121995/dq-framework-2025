@@ -49,7 +49,7 @@ def dq_execution(execution_plan_df, rules_df, entity_df,spark):
                     return False
         
         elif isinstance(result,str):
-            logger.info(result)
+            logger.error(result)
             return False
         
         return result
