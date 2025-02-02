@@ -2,9 +2,9 @@ from pyspark.sql import Row
 from pyspark.sql.types import StructType, StructField, StringType, IntegerType
 
 schema = StructType([
-            StructField("ep_id", StringType(), False),
-            StructField("rule_id", StringType(), False),
-            StructField("entity_id", StringType(), False),
+            StructField("ep_id", IntegerType(), False),
+            StructField("rule_id", IntegerType(), False),
+            StructField("entity_id", IntegerType(), False),
             StructField("column_name", StringType(), True),
             StructField("is_active", StringType(), True),
             StructField("parameter_value", StringType(), True),

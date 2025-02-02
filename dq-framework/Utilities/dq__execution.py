@@ -3,6 +3,9 @@ import os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../")))
 from common.utils import fetch_execution_plan
 from Utilities.apply_rules import apply_rules
+import logging
+logger = logging.getLogger()
+
 """
 def dq_execution(execution_plan_df, entity_data_df, rule_master_df):
     
@@ -27,24 +30,31 @@ def dq_execution(execution_plan_df, entity_data_df, rule_master_df):
             
 """
 
-def dq_execution(execution_plan_df, rules_df, entity_df):
+def dq_execution(execution_plan_df, rules_df, entity_df,spark):
     try:
         plan_list = fetch_execution_plan(execution_plan_df)
         
-        track_list = apply_rules(entity_df, rules_df, plan_list)
+        result = apply_rules(entity_df, rules_df, plan_list,spark)
         
-        if track_list:
-            if track_list.count(1) > 0:
-                print(f"DQ execution has been failed for critical rules. {track_list.count(1)} critical rules failed out of {len(plan_list)} rules. Hence failing the process")
-                return False
-            elif track_list.count(0) > 0:
-                print(f"DQ execution has been failed for non-critical rules. {track_list.count(0)} non-critical rules failed out of {len(plan_list)} rules. Hence failing the process")
-                return False
+        if isinstance(result,list):
+            if not result:
+                logger.info("DQ execution has been completed successfully!")
+                return True
+            else:
+                if result.count(1) > 0:
+                    logger.error(f"DQ execution has been failed for critical rules. {result.count(1)} critical rules failed out of {len(plan_list)} rules. Hence failing the process")
+                    return False
+                elif result.count(0) > 0:
+                    logger.error(f"DQ execution has been failed for non-critical rules. {result.count(0)} non-critical rules failed out of {len(plan_list)} rules. Hence failing the process")
+                    return False
         
-        print("DQ execution has been completed successfully!")
-        return True
+        elif isinstance(result,str):
+            logger.info(result)
+            return False
         
+        return result
     
     except Exception as e:
-        print(e)
+        logger.error(f"Exception occured {e}")
+        return False
 

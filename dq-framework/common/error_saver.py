@@ -3,6 +3,9 @@ import os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../")))
 from common.constants import VAR_ERROR_RECORD_PATH
 from datetime import datetime
+import logging
+logger = logging.getLogger()
+
 
 def save_error_records(error_record_df,entity_id):
     """
@@ -21,8 +24,9 @@ def save_error_records(error_record_df,entity_id):
     try:
         path = f"{VAR_ERROR_RECORD_PATH}{datetime.now().year}/{datetime.now().month}/{datetime.now().day}/{entity_id}"
         error_record_df.write.mode('append').format('').save(path)
+        logger.info(f"Error records saved for Entity id={entity_id}")
     except Exception as e:
-        print(e)
+        logger.error(f"Exception occured during saving the error records for entity_id {entity_id}: {e}")
 
 
 """
