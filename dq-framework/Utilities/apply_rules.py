@@ -69,15 +69,17 @@ def apply_rules(entity_data_df, rules_master_df, execution_plan_list,spark):
         try:
                 track_list = []
                 for plan in execution_plan_list:
-                        
-                        if entity_data_df.count() == 0:
-                                return f"Dataframe is Empty for entity_d {plan[2]}.Please make sure data exists for dataframe at source for entity_id {plan[2]}"
-                        
                         var_rule_id = plan[1]
                         var_column_name = plan[3]
                         var_parameters = plan[4]
                         var_is_critical = plan[5]
 
+                        if entity_data_df.count() == 0:
+                                return f"Dataframe is Empty for entity_id {plan[2]}.Please make sure data exists for dataframe at source for entity_id {plan[2]}"
+                        
+                        if var_column_name not in entity_data_df.columns:
+                                return f"Column {var_column_name} does not exists in dataframe for entity_id {plan[2]}. Make sure column {var_column_name} exists in the dataframe for entity_id {plan[2]}"
+                        
                         rule_name = rules_master_df.filter(rules_master_df.rule_id == var_rule_id).collect()[0][1]
 
                         err_path = f"{VAR_ERROR_RECORD_PATH}{datetime.now().year}/{datetime.now().month}/{datetime.now().day}/{plan[2]}"
@@ -105,26 +107,30 @@ def apply_rules(entity_data_df, rules_master_df, execution_plan_list,spark):
                         try:
                                 module = importlib.import_module("Rules.inbuilt_rules")
                                 if not hasattr(module,rule_name):
-                                        logger.error(f"Rule function {rule_name} for rule_id {var_rule_id} does not exists in {module}, Skipping the rule.Please make sure function {rule_name} exists in module {module}.")
                                         track_list.append(1 if var_is_critical == "Y" else 0)
+                                        logger.error(f"Rule function {rule_name} for rule_id {var_rule_id} does not exists in {module}, Skipping the rule. Please make sure function {rule_name} exists in module {module}.")
                                         continue
 
                                 rule_function = getattr(module,rule_name)
 
                                 if not var_parameters:
-                                        result = rule_function(entity_data_df, var_column_name)
+                                        result = rule_function(entity_data_df, var_column_name,spark)
                                 else:
-                                        result = rule_function(entity_data_df, var_column_name, var_parameters)
+                                        result = rule_function(entity_data_df, var_column_name, var_parameters,spark)
 
                                 if result[1]:
                                         row_data = Row(**result_data)
                                         result_df = spark.createDataFrame([row_data],schema)
                                         save_result_records(result_df, result_path,plan[2])
                                 else:
+                                        if result[0] == "EXCEPTION":
+                                                track_list.append(1 if var_is_critical == "Y" else 0)
+                                                logger.error(result[2])
+
                                         error_records_df = result[0]
                                         result_data["er_status"] = "Fail"
                                         result_data["failed_records_count"] = error_records_df.count()
-                                        result_data["error_message"] = f"Rule {rule_name} failed.The data contains{result_data["failed_records_count"]} error records."
+                                        result_data["error_message"] = result[2]
                                         result_data["error_records_path"] = err_path
                                         
                                         row_data = Row(**result_data)
