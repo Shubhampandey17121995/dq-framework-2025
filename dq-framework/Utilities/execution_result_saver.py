@@ -7,7 +7,7 @@ import logging
 logger = logging.getLogger()
 
 
-def save_result_records(result_df,entity_id):
+def save_execution_result_records(result_df,entity_id):
         """
         Store the given result data at execution result table/location
 
@@ -25,7 +25,7 @@ def save_result_records(result_df,entity_id):
                 result_df.write.mode('append').partitionBy("year", "month", "day", "entity_id").format('parquet').save(path)
                 logger.info(f"Result data saved for Entity id:{entity_id}")
         except Exception as e:
-                logger.error(f"Exception occured during saving the result records for entity_id {entity_id}.: {e}")
+                logger.error(f"Exception occured during saving the result records for entity_id={entity_id}: {e}")
 
 
 """

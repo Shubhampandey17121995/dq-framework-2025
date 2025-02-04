@@ -8,30 +8,33 @@ import logging
 logger = logging.getLogger()
 
 
-def save_error_records(error_record_df,entity_id):
-    """
-    Save the error records to a location.
 
-    args:
-    error_record_df: dataframe containing records failed for a rule.
-    entity_id: to store the datframe at entity level at path location.
-
-    Steps:
-        1. Create the path to store the df
-        2. write the df at s3 error records path partioned as Y/M/D/entity_id.
-    Output:
-    path: a variable containing the path where error records are stored
-    """
+def save_bad_records(error_records_df,entity_id):
     try:
         path = VAR_ERROR_RECORD_PATH
-        error_record_df = error_record_df.withColumn("entity_id",lit(entity_id))\
-            .withColumn("year", lit(datetime.now().year))\
-            .withColumn("month", lit(datetime.now().month)) \
-            .withColumn("day", lit(datetime.now().day))
-        error_record_df.write.mode('append').partitionBy("year", "month", "day", "entity_id").format('parquet').save(path)
-        logger.info(f"Error records saved for Entity id={entity_id}")
+        error_records_df = error_records_df.withColumn("entity_id",lit(entity_id))\
+                                .withColumn("year",lit(datetime.now().year))\
+                                .withColumn("month",lit(datetime.now().month))\
+                                .withColumn("day",lit(datetime.now().day))
+        
+        error_records_df.write.mode('append').partitionBy("year", "month", "day","entity_id").format('parquet').save(path)
+        logger.info(f"Bad rror records saved for entity_id {entity_id}")
     except Exception as e:
-        logger.error(f"Exception occured during saving the error records for entity_id {entity_id}: {e}")
+        logger.error(f"Exception occured in save_bad_records() for entity_id={entity_id}: {e}")
+
+def save_good_records(error_records_df,entity_id):
+    try:
+        path = VAR_ERROR_RECORD_PATH
+        error_records_df = error_records_df.withColumn("entity_id",lit(entity_id))\
+                                .withColumn("year",lit(datetime.now().year))\
+                                .withColumn("month",lit(datetime.now().month))\
+                                .withColumn("day",lit(datetime.now().day))
+        
+        error_records_df.write.mode('append').partitionBy("year", "month", "day","entity_id").format('parquet').save(path)
+        logger.info(f"Good records saved for entity_id {entity_id}")
+    except Exception as e:
+        logger.error(f"Exception occured in save_good_records() for entity_id={entity_id}: {e}")
+
 
 
 """

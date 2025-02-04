@@ -36,7 +36,7 @@ def fetch_primary_key_columns_from_file(file_path, table_name):
     list: A list of column names with primary key attributes.
     """
 
-def fetch_execution_plan(execution_plan_df):
+def fetch_execution_plan(execution_plan_with_rule_df):
     """
         Extract the plans information for entity from execution plan df
         
@@ -53,10 +53,10 @@ def fetch_execution_plan(execution_plan_df):
             list: A list of tuples of plan info e.g. execution_plan_list[(rule_id, column_name, paramaters, is_critical, etc.)]
     """
     try:
-        plan_list = [tuple(row) for row in execution_plan_df.filter(execution_plan_df.is_active == "Y").collect()]
+        plan_list = [tuple(row) for row in execution_plan_with_rule_df.filter(execution_plan_with_rule_df.is_active == "Y").collect()]
         return plan_list
     except Exception as e:
-        print(f"Exception occured: {e}")
+        print(f"Exception occured in fetch_execution_plan(): {e}")
 
 # fetch path from entity master table path
 def fetch_entity_path(entity_master_df):

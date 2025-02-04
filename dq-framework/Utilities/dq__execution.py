@@ -30,11 +30,11 @@ def dq_execution(execution_plan_df, entity_data_df, rule_master_df):
             
 """
 
-def dq_execution(execution_plan_df, rules_df, entity_df,spark):
+def dq_execution(execution_plan_with_rule_df,entity_data_df,spark):
     try:
-        plan_list = fetch_execution_plan(execution_plan_df)
+        plan_list = fetch_execution_plan(execution_plan_with_rule_df)
         
-        result = apply_rules(entity_df, rules_df, plan_list,spark)
+        result = apply_rules(entity_data_df,plan_list,spark)
         
         if isinstance(result,list):
             if not result:
@@ -52,9 +52,10 @@ def dq_execution(execution_plan_df, rules_df, entity_df,spark):
             logger.error(result)
             return False
         
+        logger.error("DQ EXECUTION FAILED!")
         return result
     
     except Exception as e:
-        logger.error(f"Exception occured {e}")
+        logger.error(f"Exception occured in dq_execution():{e}")
         return False
 
