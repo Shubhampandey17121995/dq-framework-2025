@@ -35,10 +35,3 @@ def save_good_records(error_records_df,entity_id):
     except Exception as e:
         logger.error(f"Exception occured in save_good_records() for entity_id={entity_id}: {e}")
 
-
-
-"""
-entity_id = 10
-path = f"{VAR_ERROR_RECORD_PATH}{datetime.now().year}/{datetime.now().month}/{datetime.now().day}/{entity_id}"
-print(path)
-"""

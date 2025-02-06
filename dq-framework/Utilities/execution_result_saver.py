@@ -27,9 +27,3 @@ def save_execution_result_records(result_df,entity_id):
         except Exception as e:
                 logger.error(f"Exception occured during saving the result records for entity_id={entity_id}: {e}")
 
-
-"""
-entity_id = 10
-path = f"{VAR_S3_EXECUTION_RESULT_PATH}{datetime.now().year}/{datetime.now().month}/{datetime.now().day}/{entity_id}"
-print(path)
-"""
