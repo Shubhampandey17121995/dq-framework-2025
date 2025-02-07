@@ -1,4 +1,3 @@
-from pyspark.sql import Row
 from pyspark.sql.types import StructType, StructField, StringType, IntegerType
 
 schema = StructType([
@@ -22,12 +21,14 @@ schema = StructType([
 
 
 VAR_S3_RULE_MASTER_PATH = "s3://dq-framework/dq_rule_master/"
-VAR_S3_BUCKET_PATH = "//S3_BUCKET_PATH"
 VAR_S3_ENTITY_MASTER_PATH = "s3://dq-framework/dq_entity_master/"
 VAR_S3_EXECUTION_PLAN_PATH = "s3://dq-framework/dq_execution_plan/"
-
 VAR_EXECUTION_RESULT_PATH = "s3://dq-framework/dq_execution_result/"
-VAR_ERROR_RECORD_PATH = "s3://error_record_path/"
+
+
+VAR_BAD_RECORD_PATH = "s3://error_record_path/"
+VAR_GOOD_RECORD_PATH = "s3://error_record_path/"
+
 
 ENTITY_ID = "entity_001" #USER INPUT
 
