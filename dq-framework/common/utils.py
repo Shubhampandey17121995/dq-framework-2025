@@ -1,7 +1,3 @@
-import logging
-logger = logging.getLogger()
-
-
 def fetch_execution_plan(execution_plan_with_rule_df):
     """
         Extract the plans information for entity from execution plan df

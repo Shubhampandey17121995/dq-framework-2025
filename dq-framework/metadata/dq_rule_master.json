@@ -1,36 +1,36 @@
 
 {
-    "DQ_RULE_MASTER": {
+    "df_rule_master": {
       "columns": [
         {
           "name": "rule_id",
-          "type": "string",
-          "primary_key": true,
-          "nullable": false          
+          "type": "int",
+          "primary_key": True,
+          "nullable": False
         },
         {
           "name": "rule_name",
           "type": "string",
-          "primary_key": false,
-          "nullable": false
+          "primary_key": False,
+          "nullable": False
         },
         {
           "name": "rule_type",
           "type": "string",
-          "primary_key": false,
-          "nullable": false
+          "primary_key": False,
+          "nullable": False
         },
         {
           "name": "rule_description",
           "type": "string",
-          "primary_key": false,
-          "nullable": false
+          "primary_key": False,
+          "nullable": False
         },
         {
           "name": "last_updated_date",
-          "type": "string",
-          "primary_key": false,
-          "nullable": false
+          "type": "date",
+          "primary_key": False,
+          "nullable": False
         }
       ]
     }

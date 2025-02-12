@@ -1,65 +1,65 @@
 {
-    "DQ_ENTITY_MASTER": {
+    "dq_entity_master": {
         "columns": [
           {
             "name": "entity_id",
-            "type": "string",
-            "primary_key": true,
-            "nullable": false
+            "type": "int",
+            "primary_key": True,
+            "nullable": False
           },
           {
             "name": "entity_name",
             "type": "string",
-            "primary_key": false,
-            "nullable": false
+            "primary_key": False,
+            "nullable": False
           },
           {
             "name": "entity_type",
             "type": "string",
-            "primary_key": false,
-            "nullable": false
+            "primary_key": False,
+            "nullable": False
           },
           {
             "name": "source_name",
             "type": "string",
-            "primary_key": false,
-            "nullable": false
+            "primary_key": False,
+            "nullable": False
           },
           {
             "name": "source_type",
             "type": "string",
-            "primary_key": false,
-            "nullable": false
+            "primary_key": False,
+            "nullable": False
           },
           {
             "name": "number_of_columns",
-            "type": "string",
-            "primary_key": false,
-            "nullable": true
+            "type": "int",
+            "primary_key": False,
+            "nullable": True
           },
           {
             "name": "file_path",
             "type": "string",
-            "primary_key": false,
-            "nullable": false
+            "primary_key": False,
+            "nullable": False
           },
           {
             "name": "delimiter",
             "type": "string",
-            "primary_key": false,
-            "nullable": false
+            "primary_key": False,
+            "nullable": False
           },
           {
             "name": "last_updated_date",
-            "type": "string",
-            "primary_key": false,
-            "nullable": false
+            "type": "date",
+            "primary_key": False,
+            "nullable": False
           },
           {
             "name": "database_name",
             "type": "string",
-            "primary_key": false,
-            "nullable": true
+            "primary_key": False,
+            "nullable": True
           }
         ]
       }
