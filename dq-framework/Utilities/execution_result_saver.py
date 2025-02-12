@@ -20,8 +20,8 @@ def save_bad_records(error_records_df,entity_id):
                 path = VAR_BAD_RECORD_PATH
                 error_records_df = error_records_df.withColumn("entity_id",lit(entity_id))\
                                         .withColumn("year",lit(datetime.now().year))\
-                                        .withColumn("month",lit(datetime.now().month))\
-                                        .withColumn("day",lit(datetime.now().day))
+                                        .withColumn("month",lit(int(datetime.now().strftime("%m"))))\
+                                        .withColumn("day",lit(int(datetime.now().strftime("%d"))))
 
                 error_records_df.write.mode('append').partitionBy("year", "month", "day","entity_id").format('parquet').save(path)
                 logger.info(f"Bad rror records saved for entity_id {entity_id}")
@@ -34,8 +34,8 @@ def save_good_records(error_records_df,entity_id):
                 path = VAR_GOOD_RECORD_PATH
                 error_records_df = error_records_df.withColumn("entity_id",lit(entity_id))\
                                         .withColumn("year",lit(datetime.now().year))\
-                                        .withColumn("month",lit(datetime.now().month))\
-                                        .withColumn("day",lit(datetime.now().day))
+                                        .withColumn("month",lit(int(datetime.now().strftime("%m"))))\
+                                        .withColumn("day",lit(int(datetime.now().strftime("%d"))))
 
                 error_records_df.write.mode('append').partitionBy("year", "month", "day","entity_id").format('parquet').save(path)
                 logger.info(f"Good records saved for entity_id {entity_id}")

@@ -50,9 +50,9 @@ def apply_rules(entity_data_df, execution_plan_list,spark):
                                 "error_records_path" : "",
                                 "error_message" : "",
                                 "execution_timestamp" : datetime.now(),
-                                "year" : datetime.now().year,
-                                "month" : datetime.now().month,
-                                "day" : datetime.now().day
+                                "year" : int(datetime.now().year),
+                                "month" : int(datetime.now().strftime("%m")),
+                                "day" : int(datetime.now().strftime("%d"))
                         }
                         try:
                                 rule_function = getattr(module,var_rule_name)
