@@ -1,62 +1,59 @@
 {
-    "DQ_EXECUTION_PLAN": {
+    "dq_execution_plan": {
       "columns": [
         {
           "name": "ep_id",
-          "type": "string",
-          "nullable": false
-             
+          "type": "int",
+          "nullable": False
         },
         {
           "name": "rule_id",
-          "type": "string",
-          "nullable": false,
-          "foreign_key": true,
-          "references": 
-             {
-                  "table": "DQ_RULE_MASTER",
+          "type": "int",
+          "nullable": False,
+          "foreign_key": True,
+          "references":
+            {
+                  "table": "df_rule_master",
                   "column": "rule_id"
-             }
-         
+            }
         },
         {
           "name": "entity_id",
-          "type": "string",
-          "nullable": false,
-          "foreign_key":true,
-          "references": 
-             {
-                  "table": "DQ_ENTITY_MASTER",
+          "type": "int",
+          "nullable": False,
+          "foreign_key":True,
+          "references":
+            {
+                  "table": "dq_entity_master",
                   "column": "entity_id"
-             }
-         
+            }
         },
         {
           "name": "column_name",
           "type": "string",
-          "nullable": true         
+          "nullable": True
         },
         {
           "name": "parameter_value",
           "type": "string",
-          "nullable": true
+          "nullable": True
         },
         {
           "name": "is_critical",
           "type": "string",
-          "nullable": true,
+          "nullable": True,
           "default_value": "N"
         },
         {
           "name": "is_active",
           "type": "string",
-          "nullable": true,
+          "nullable": True,
           "default_value": "Y"
         },
         {
           "name": "last_update_date",
-          "type": "string",
-          "nullable": false
+          "type": "date",
+          "nullable": False
         }
       ]
     }

@@ -4,8 +4,8 @@ dq_framework/
 │       |---__init__.py
 |       |--- constants.py                       # Configuration file with S3 paths and variables
 |       |--- spark_config.py                    # sparkSession initialization
-|       |--- error_saver.py                     # save error function
 |       |--- custom_logger.py                   # logger function
+|       |--- validation_config.py               # validation configs
 |       |--- utils.py                           # common utilities
 |
 |
@@ -14,7 +14,6 @@ dq_framework/
 |       |--- __init__.py
 |       |--- dq_entity_master.json
 |       |--- dq_execution_plan.json
-|       |--- dq_execution_result.json
 |       |--- dq_rule_master.json
 |       |--- ddl/                                # contains ddl for configuration tables
 |           |--- dq_entity_master_ddl.sql
