@@ -28,22 +28,18 @@ def merge_plans_with_rules(execution_plan_df,rules_df):
         logger.error(f"Exception occured in merge_plans_with_rules(): {e}")
 
 # fetch path from entity master table path
-def fetch_entity_path(entity_master_df):
-    """
-    Extract the path where actual entity data is stored.
-
-    args:
-    entity_master_df : this dataframe contain the path
-
-    Steps:
-        1. from entity master df fetch the file path where actual entity is stored.
-        2. store the file path in a path variable
+def fetch_entity_path(entity_master_df,entity_id):
+        """
+        Extract the path where actual entity data is stored.
+        args:entity_master_df,entity_id
+        Steps:
+            1. from entity master df fetch the file path where actual entity is stored.
+            2. store the file path in a path variable
+            path variable : a variable that contains the entity path fetched from df.
+        """
+    result = df.filter(col("entity_id") == entity_id).select("file_path").collect()
     
-    Output:
-        path variable : a variable that contains the entity path fetched from df.
-    """
-    try:
-        pass
-    except Exception as e:
-        pass
+        if result:
+            return result[0]["file_path"]
+        return None
 
