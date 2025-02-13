@@ -1,5 +1,6 @@
 import sys
 from awsglue.utils import getResolvedOptions
+from common import constants
 from common.custom_logger import getlogger
 from common.utils import *
 from common.constants import *
@@ -15,8 +16,9 @@ def main():
     # get entity id
     args = getResolvedOptions(sys.argv, ['entity_id'])
     entity_id = args['entity_id']
-    # load config tables
+    constants.VAR_ENTITY_ID = entity_id
 
+    # load config tables
     # apply validation
     execute_validations(validations)
     # fetch entity path

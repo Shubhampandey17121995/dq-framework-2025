@@ -38,35 +38,51 @@ def empty_string_check(df,column_name):
 #*****************************************************
 def primary_key_uniqueness(df,primary_key_column):
     try:
-        duplicate_count = df.groupBy(primary_key_column).count().filter(col("count") > 1).count()
-        if duplicate_count > 0:
-            duplicate_record_df = df.groupBy(primary_key_column).count().filter(col("count") > 1).drop("count")
-            duplicate_record_df = duplicate_record_df.join(df, on=primary_key_column, how='inner')
+        # Handle duplicate primary key values (excluding nulls)
+        duplicate_keys_df = (
+            df.filter(df[primary_key_column].isNotNull())  # Exclude NULLs for now
+            .groupBy(primary_key_column)
+            .count()
+            .filter(col("count") > 1)
+            .select(primary_key_column)
+        )
+
+        # Fetch only one instance of each duplicate row
+        duplicate_record_df = df.join(duplicate_keys_df, on=primary_key_column, how="inner").dropDuplicates()
+        duplicate_count = duplicate_record_df.count()
+
+        # Handle NULL values separately
+        null_record_df = df.filter(df[primary_key_column].isNull()).dropDuplicates()
+        null_count = null_record_df.count()
+
+        if duplicate_count > 0 and null_count > 0:
+            error_message = f"Primary key column '{primary_key_column}' contains {duplicate_count} duplicate and {null_count} null values."
+            print(error_message)
+            return (duplicate_record_df.union(null_record_df), False, error_message)
+
+        elif duplicate_count > 0:
             error_message = f"Primary key column '{primary_key_column}' contains {duplicate_count} duplicate values."
-            logger.error(error_message)
+            print(error_message)
             return (duplicate_record_df, False, error_message)
-        
-        null_count = df.filter(df[primary_key_column].isNull()).count()
-        if null_count > 0:
-            null_record_df = df.filter(df[primary_key_column].isNull())
+
+        elif null_count > 0:
             error_message = f"Primary key column '{primary_key_column}' contains {null_count} null values."
-            logger.error(error_message)
+            print(error_message)
             return (null_record_df, False, error_message)
-        
-        logger.info(f"Primary key column '{primary_key_column}' contains no duplicate values.")
-        return (None, True,None)
-    
+
+        print(f"Primary key column '{primary_key_column}' contains no duplicate values.")
+        return (None, True, None)
+
     except Exception as e:
-        logger.error(f"Exception occurred during primary key uniqueness check: {e}")
-        error_message = f"Exception:{e}"
-        return ("EXCEPTION", False, error_message)
+        print(f"Exception occurred during primary key uniqueness check: {e}")
+        return ("EXCEPTION", False, f"Exception: {e}")
 #*****************************************************
 def duplicate_records_check(df):
     try:
         duplicate_count = df.groupBy(df.columns).count().filter(col("count") > 1).count()
         if duplicate_count > 0:
             duplicate_record_df = df.groupBy(df.columns).count().filter(col("count") > 1).drop("count")
-            duplicate_record_df = duplicate_record_df.join(df, on=df.columns, how='inner')
+            #duplicate_record_df = duplicate_record_df.join(df, on=df.columns, how='inner')
             error_message = f"Dataframe Contains {duplicate_count} duplicate records for ."
             logger.error(error_message)
             return (duplicate_record_df, False, error_message)
@@ -84,7 +100,7 @@ def duplicate_values_check(df,column_name):
         duplicate_count = df.groupBy(column_name).count().filter(col("count") > 1).count()
         if duplicate_count > 0:
             duplicate_record_df = df.groupBy(column_name).count().filter(col("count") > 1).drop("count")
-            duplicate_record_df = duplicate_record_df.join(df, on=column_name, how='inner')
+            duplicate_record_df = duplicate_record_df.join(df.distinct(), on=column_name, how='inner')
             error_message = f"Column '{column_name}' contains {duplicate_count} duplicate values."
             logger.error(error_message)
             return (duplicate_record_df, False, error_message)

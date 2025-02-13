@@ -19,6 +19,8 @@ schema = StructType([
             StructField("day", IntegerType(), False)
             ])
 
+# entity id
+VAR_ENTITY_ID = None
 # config table paths
 VAR_S3_RULE_MASTER_PATH = "job_catalog.dq_testdb2.dq_entity_master"
 VAR_S3_ENTITY_MASTER_PATH = "job_catalog.dq_testdb2.dq_execution_plan"
