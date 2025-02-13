@@ -1,19 +1,4 @@
 def fetch_execution_plan(execution_plan_with_rule_df):
-    """
-        Extract the plans information for entity from execution plan df
-        
-        args:
-        execution_plan_df : dataframe that contains plan information for a entity
-
-        Steps:
-            1. collect the rows of plans from dataframe
-            2. create the list of tuples of execution plans available for entity.
-                The rule_id, column_name, paramaters, is_critical, etc. will be fetched in the list.
-            3. store the result in a list of tuples
-
-        Output :
-            list: A list of tuples of plan info e.g. execution_plan_list[(rule_id, column_name, paramaters, is_critical, etc.)]
-    """
     try:
         plan_list = [tuple(row) for row in execution_plan_with_rule_df.filter(execution_plan_with_rule_df.is_active == "Y").collect()]
         return plan_list
@@ -29,19 +14,6 @@ def merge_plans_with_rules(execution_plan_df,rules_df):
 
 # fetch path from entity master table path
 def fetch_entity_path(entity_master_df):
-    """
-    Extract the path where actual entity data is stored.
-
-    args:
-    entity_master_df : this dataframe contain the path
-
-    Steps:
-        1. from entity master df fetch the file path where actual entity is stored.
-        2. store the file path in a path variable
-    
-    Output:
-        path variable : a variable that contains the entity path fetched from df.
-    """
     try:
         pass
     except Exception as e:
