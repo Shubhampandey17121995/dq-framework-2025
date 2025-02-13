@@ -1,34 +1,42 @@
 
+import json
+import os
+from pathlib import Path
+from pyspark.sql.functions import *
 from Utilities.validation import *
+from common.constants import DIRECTORY_PATH, REQUIRED_TABLE_METADATA
 
-# Directory path containing JSON files
-directory_path = "dq-framework\metadata"
-
-# Required table_metadata
-REQUIRED_TABLE_METADATA = {
-    "dq_entity_master": "dq_entity_master.json",
-    "df_rule_master": "dq_rule_master.json",
-    "dq_execution_plan": "dq_execution_plan.json"
-}
-
-# Validation_Config
+# Dictionary with table_names with their respective dfs
 dfs = {
-    "dq_entity_master": entity_master_df,
-    "df_rule_master": rule_master_df,
-    "dq_execution_plan": execution_plan_df
+    "dq_entity_master": entity_master_filtered_df,
+    "df_rule_master": rule_master_filtered_df,
+    "dq_execution_plan": execution_plan_filtered_df
 }
 
-# Validation_config
-validation_steps = [
-    ("Column data type validation", validate_column_data_types),
-    ("Nullable constraint validation", validate_nullable_constraint),
-    ("Primary key uniqueness validation", validate_primary_key_uniqueness)
-]
+# Loads metadata JSON files from the specified directory path.
+# Returns a dictionary with table names as keys and their metadata as values.   
+def load_selected_metadata(directory_path):
+    metadata = {}
+    if not os.path.exists(directory_path):
+        logger.error(f"Directory '{directory_path}' does not exist.")
+        return metadata
+    
+    for table_name, filename in REQUIRED_TABLE_METADATA.items():
+        file_path = os.path.join(directory_path, filename)
+        if os.path.exists(file_path):
+            try:
+                with open(file_path, 'r') as file:
+                    metadata[table_name] = json.load(file)
+                    logger.info(f"Loaded metadata for '{table_name}' from '{filename}'")
+            except Exception as e:
+                logger.error(f"Failed to load metadata from '{filename}': {e}")
+        else:
+            logger.error(f"File '{filename}' not found in directory '{directory_path}'")
+    
+    return metadata
 
-# Validation_config
-validations = [
-    (apply_validation, (entity_master_df, metadata, "dq_entity_master")),
-    (apply_validation, (execution_plan_df, metadata, "dq_execution_plan")),
-    (apply_validation, (rule_master_df, metadata, "df_rule_master")),
-    (validate_foreign_key_relationship, (execution_plan_df, metadata, "dq_execution_plan", dfs))
-]
+metadata = load_selected_metadata(DIRECTORY_PATH)
+
+# Generate validation list dynamically
+validations = [(apply_validation, (df, metadata, table_name)) for table_name, df in dfs.items()]
+validations.extend((validate_foreign_key_relationship, (df, metadata, table_name, dfs)) for table_name, df in dfs.items())

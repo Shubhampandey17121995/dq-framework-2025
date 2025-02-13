@@ -24,7 +24,7 @@ def main():
     # load entity data
     
     # apply dq
-    execution_plan_with_rule_df = merge_plans_with_rules(execution_plan_df,rule_master_df)
+    execution_plan_with_rule_df = merge_plans_with_rules(execution_plan_filtered_df,rule_master_filtered_df)
     dq_execution(execution_plan_with_rule_df,entity_data_df,spark)
 
 
