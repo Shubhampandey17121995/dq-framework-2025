@@ -11,14 +11,12 @@ from Utilities.table_loader import *
 from Utilities.validation import *
 from Utilities.dq__execution import *
 logger = getlogger()
+args = getResolvedOptions(sys.argv, ['entity_id'])
+constants.VAR_ENTITY_ID = args['entity_id']
 
 def main():
-    # get entity id
-    args = getResolvedOptions(sys.argv, ['entity_id'])
-    entity_id = args['entity_id']
-    constants.VAR_ENTITY_ID = entity_id
-
     # load config tables
+
     # apply validation
     execute_validations(validations)
     # fetch entity path
