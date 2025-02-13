@@ -3,9 +3,18 @@ def createSparkSession():
     """
     step 1: set spark configuration for aws s3
     step 2: return sparksession
-
-    
     """
+    spark = SparkSession.builder \
+        .appName("IcebergTableReader") \
+        .config("spark.sql.catalog." + SPARK_CATALOG_NAME, SPARK_CATALOG_IMPL) \
+        .config("spark.sql.catalog." + SPARK_CATALOG_NAME + ".warehouse", SPARK_CATALOG_WAREHOUSE) \
+        .config("spark.sql.extensions", SPARK_EXTENSIONS) \
+        .config("spark.jars.packages", SPARK_JARS_PACKAGES) \
+        .getOrCreate()
+    return spark
+
+
+
 
 
 

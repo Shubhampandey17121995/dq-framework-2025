@@ -15,13 +15,28 @@ def main():
     # get entity id
     args = getResolvedOptions(sys.argv, ['entity_id'])
     entity_id = args['entity_id']
-    # load config tables
+    # Step 1: Get custom logger.
+
+    #Step 2: Initialize the spark session.
+    createSparkSession()
+
+    #Step 3: Load configuration from configuration table in a df => rule_master_df, entity_master_df, execution_plan_df.
+    entity_master_df, execution_plan_df, execution_result_df, rule_master_df = entity_data_loader(
+        VAR_S3_ENTITY_MASTER_PATH, VAR_S3_EXECUTION_PLAN_PATH, VAR_S3_EXECUTION_RESULT_PATH, VAR_S3_RULE_MASTER_PATH
+    )
 
     # apply validation
     execute_validations(validations)
-    # fetch entity path
+    
+    #Step 4: Filter entity and load entity data in df => entity_data_df.
+    #filter dataframes for entity_id
+    entity_master_filtered_df = config_loader(VAR_S3_ENTITY_MASTER_PATH,ENTITY_ID)
+    execution_plan_filtered_df = config_loader(VAR_S3_EXECUTION_PLAN_PATH,ENTITY_ID)
+    rule_master_filtered_df = config_loader(VAR_S3_RULE_MASTER_PATH,ENTITY_ID)
 
-    # load entity data
+
+    #Step 5: fetch the entity file path from entity_master_df.
+    Entity_File_Path = fetch_entity_path(entity_master_df,entity_id)
     
     # apply dq
     execution_plan_with_rule_df = merge_plans_with_rules(execution_plan_df,rule_master_df)
