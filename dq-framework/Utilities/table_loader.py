@@ -24,3 +24,19 @@ def entity_data_loader(spark, entity_master_path, execution_plan_path, execution
         rule_master_df = spark.read.format("iceberg").table(rule_master_path)
           
         return entity_master_df, execution_plan_df, execution_result_df, rule_master_df
+
+
+
+def data_loader(entity_path):
+        # Extract file extension
+        file_format = entity_path.split('.')[-1].lower()
+
+        # Read the file dynamically using file extension
+        try:
+                logger.info(f"Attempting to read file: {entity_path} as {file_format.upper()}")
+                df = spark.read.format(file_format).option("header", "true").option("inferSchema", "true").load(entity_path)
+                logger.info(f"Successfully read file as {file_format.upper()}")
+        except Exception as e:
+                logger.error(f"Error reading file {entity_path}: {e}\nUnsupported or unknown file format.")
+
+
