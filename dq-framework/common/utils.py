@@ -28,18 +28,44 @@ def merge_plans_with_rules(execution_plan_df,rules_df):
         logger.error(f"Exception occured in merge_plans_with_rules(): {e}")
 
 # fetch path from entity master table path
-def fetch_entity_path(entity_master_df,entity_id):
-        """
-        Extract the path where actual entity data is stored.
-        args:entity_master_df,entity_id
-        Steps:
-            1. from entity master df fetch the file path where actual entity is stored.
-            2. store the file path in a path variable
-            path variable : a variable that contains the entity path fetched from df.
-        """
-    result = df.filter(col("entity_id") == entity_id).select("file_path").collect()
-    
+def fetch_entity_path(entity_master_df, entity_id):
+    try:
+        # Filter the dataframe for the specific entity_id and select file_path
+        result = entity_master_df.filter(col("entity_id") == entity_id).select("file_path").first()
+        
+        # If a result is found, return the file_path, otherwise return None
         if result:
-            return result[0]["file_path"]
+            logger.info(f"File path found for entity_id: {entity_id}")
+            return result["file_path"]
+        else:
+            logger.warning(f"No file path found for entity_id: {entity_id}")
+            return None
+    except Exception as e:
+        logger.error(f"Error fetching file path for entity_id: {entity_id} - {e}")
         return None
 
+
+def fetch_rules(execution_plan_df):
+    try:
+        # Fetch distinct rule_ids from the dataframe and collect as a list
+        rule_list = execution_plan_df.select("rule_id").distinct().rdd.flatMap(lambda x: x).collect()
+        
+        # Log success
+        logger.info("Successfully fetched rule list.")
+        return rule_list
+    except Exception as e:
+        # Log error if something goes wrong
+        logger.error(f"Error fetching rule list: {e}")
+        return []
+
+def fetch_filtered_rules(rule_list,rule_master_df):
+    try:
+        # Filter the rule_master_df for the given list of rule_ids
+        rule_master_filtered_df = rule_master_df.filter(rule_master_df["rule_id"].isin(rule_list))
+        # Log success
+        logger.info(f"Successfully filtered {len(rule_list)} rules.")
+        return rule_master_filtered_df
+    except Exception as e:
+        # Log error if filtering fails
+        logger.error(f"Error filtering rules: {e}")
+        return None
