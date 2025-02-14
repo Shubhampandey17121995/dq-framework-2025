@@ -22,10 +22,8 @@ def entity_data_loader(spark, entity_master_path, execution_plan_path, execution
         execution_plan_df = spark.read.format("iceberg").table(execution_plan_path)
         execution_result_df = spark.read.format("iceberg").table(execution_result_path)
         rule_master_df = spark.read.format("iceberg").table(rule_master_path)
-        
-        return entity_master_df, execution_plan_df, execution_result_df, rule_master_df
-
-
+          
+        return entity_master_df, execution_plan_df, execution_result_df, rule_maste
 
 def data_loader(entity_path):
         # Extract file extension

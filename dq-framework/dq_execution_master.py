@@ -35,13 +35,12 @@ def main():
 
     # apply validation
     execute_validations(validations)
-
     #fetch the entity file path from entity_master_df. fetch table from file_path
     Entity_File_Path = fetch_entity_path(entity_master_df,entity_id)
-    entity_data_df=data_loader(Entity_File_Path)
-
+    entity_data_df=data_loader(Entity_File_Path
+   
     # apply dq
-    execution_plan_with_rule_df = merge_plans_with_rules(execution_plan_filtered_df,rule_master_filtered_df)
+    execution_plan_with_rule_df = merge_plans_with_rules(execution_plan_df,rule_master_filtered_df)
     dq_execution(execution_plan_with_rule_df,entity_data_df,spark)
 
 
