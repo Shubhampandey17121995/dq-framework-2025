@@ -10,7 +10,9 @@ from common.spark_config import *
 from Utilities.table_loader import *
 from Utilities.validation import *
 from Utilities.dq__execution import *
+# initialize logger
 logger = getlogger()
+# take entity_id as input paramater and save it in constants
 args = getResolvedOptions(sys.argv, ['entity_id'])
 constants.VAR_ENTITY_ID = args['entity_id']
 

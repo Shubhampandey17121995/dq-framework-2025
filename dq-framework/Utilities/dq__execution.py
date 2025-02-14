@@ -3,7 +3,12 @@ import os
 from common.utils import fetch_execution_plan
 from Utilities.apply_rules import apply_rules
 
-
+"""
+Executes data quality (DQ) validation by fetching the execution plan and applying rules 
+to the provided dataset. It categorizes the results into critical failures, non-critical 
+failures, exceptions, and successful rule executions. Logs a summary of the execution 
+and returns True if all rules pass, otherwise returns False.
+"""
 def dq_execution(execution_plan_with_rule_df,entity_data_df,spark):
     try:
         plan_list = fetch_execution_plan(execution_plan_with_rule_df)

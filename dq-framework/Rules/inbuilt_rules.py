@@ -118,7 +118,7 @@ def expected_value_check(df,column_name,expected_value):
         invalid_count = df.filter(df[column_name] != expected_value).count()
 
         if invalid_count > 0:
-            invalid_record_df = df.filter(df[column_name] != expected_value)
+            invalid_record_df = df.filter((df[column_name] != expected_value) | (df[column_name].isNull()))
             error_message = f"Column '{column_name}' contains {invalid_count} records with values different from the expected value '{expected_value}'."
             logger.error(error_message)
             return (invalid_record_df, False, error_message)

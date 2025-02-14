@@ -1,5 +1,5 @@
 from pyspark.sql.types import StructType, StructField, StringType, IntegerType
-
+# schema to create the df of execution result
 schema = StructType([
             StructField("ep_id", IntegerType(), False),
             StructField("rule_id", IntegerType(), False),

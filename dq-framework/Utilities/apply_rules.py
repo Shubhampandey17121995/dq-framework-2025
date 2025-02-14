@@ -10,6 +10,28 @@ from common.constants import schema
 from datetime import datetime
 
 def apply_rules(entity_data_df, execution_plan_list,spark):
+        """
+        This function applies a list of data quality (DQ) rules to a given entity dataset.
+
+        Steps:
+        1. Iterates through the execution plan to extract rule details.
+        2. Checks if the entity dataset is empty.
+        3. Validates if the rule function exists in the 'Rules.inbuilt_rules' module.
+        4. Calls the corresponding rule function dynamically with necessary parameters.
+        5. Captures the results:
+                - If the rule passes, logs execution status.
+                - If it fails, saves error records and logs the failure.
+                - If an exception occurs, logs the error and continues to the next rule.
+        6. At the end of execution:
+                - If all rules pass, saves good records.
+                - If any rules fail, separates good and bad records, saving both.
+                - If all rules cause exceptions, saves the records as they are.
+
+        Returns:
+        - `True` if all rules pass.
+        - A track list indicating rule outcomes (pass/fail/exception).
+        - `False` if an error occurs during execution.
+        """
         try:
                 track_list = []
                 all_df_list = []
