@@ -1,0 +1,40 @@
+
+{
+    "df_rule_master": {
+      "columns": [
+        {
+          "name": "rule_id",
+          "type": "int",
+          "primary_key": True,
+          "nullable": False
+        },
+        {
+          "name": "rule_name",
+          "type": "string",
+          "primary_key": False,
+          "nullable": False
+        },
+        {
+          "name": "rule_type",
+          "type": "string",
+          "primary_key": False,
+          "nullable": False
+        },
+        {
+          "name": "rule_description",
+          "type": "string",
+          "primary_key": False,
+          "nullable": False
+        },
+        {
+          "name": "last_updated_date",
+          "type": "date",
+          "primary_key": False,
+          "nullable": False
+        }
+      ]
+    }
+}
+    
+
+
