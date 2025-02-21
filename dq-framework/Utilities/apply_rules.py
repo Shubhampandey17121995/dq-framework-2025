@@ -5,7 +5,7 @@ import random
 from functools import reduce
 from pyspark.sql import Row, DataFrame
 from pyspark.sql.functions import lit, col, collect_list
-from Utilities.execution_result_saver import save_execution_result_records, save_bad_records,save_good_records
+from utilities.execution_result_saver import save_execution_result_records, save_bad_records,save_good_records
 from common.constants import VAR_BAD_RECORD_PATH
 from common.constants import schema
 from datetime import datetime
@@ -54,7 +54,7 @@ def apply_rules(entity_data_df, execution_plan_list,spark):
                                 logger.error(f"Rule {var_rule_name} with rule_id={var_rule_id} does not exists.Make sure rule {var_rule_name} exists in rule_master table")
                                 continue
 
-                        module = importlib.import_module("Rules.inbuilt_rules")
+                        module = importlib.import_module("rules.inbuilt_rules")
                         if not hasattr(module,var_rule_name):
                                 track_list.append(3)
                                 logger.error(f"Rule function {var_rule_name} for rule_id {var_rule_id} does not exists in {module}, Skipping the rule. Please make sure function {var_rule_name} exists in module {module}.")

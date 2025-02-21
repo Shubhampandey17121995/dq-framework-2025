@@ -6,9 +6,9 @@ from common.utils import merge_plans_with_rules,fetch_rules,fetch_entity_path,fe
 from common.constants import *
 from common.custom_logger import getlogger
 from common.spark_config import createSparkSession
-from Utilities.table_loader import config_loader,entity_data_loader,data_loader
-from Utilities.validation import *
-from Utilities.dq__execution import dq_execution
+from utilities.table_loader import config_loader,entity_data_loader,data_loader
+from utilities.validation import *
+from utilities.dq__execution import dq_execution
 # initialize logger
 logger = getlogger()
 # take entity_id as input paramater and save it in constants

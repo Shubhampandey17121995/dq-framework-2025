@@ -1,7 +1,7 @@
 import sys
 import os
 from common.utils import fetch_execution_plan
-from Utilities.apply_rules import apply_rules
+from utilities.apply_rules import apply_rules
 from common.custom_logger import getlogger
 logger = getlogger()
 
