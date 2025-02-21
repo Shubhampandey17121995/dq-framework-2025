@@ -1,5 +1,6 @@
 from pyspark.sql import SparkSession
-
+from common.custom_logger import getlogger
+logger = getlogger()
 def createSparkSession():
     spark = SparkSession.builder \
         .appName("IcebergTableReader") \
@@ -11,5 +12,7 @@ def createSparkSession():
         .config("spark.sql.sources.partitionOverwriteMode", "dynamic") \
         .config("spark.sql.iceberg.handle-timestamp-without-timezone", "true") \
         .getOrCreate()
-
+    logger.info("Created spark session")
     return spark
+
+
