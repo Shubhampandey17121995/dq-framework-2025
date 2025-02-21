@@ -1,6 +1,7 @@
 import sys
 import os
 import importlib
+import random
 from functools import reduce
 from pyspark.sql import Row, DataFrame
 from pyspark.sql.functions import lit, col, collect_list
@@ -8,11 +9,11 @@ from Utilities.execution_result_saver import save_execution_result_records, save
 from common.constants import VAR_BAD_RECORD_PATH
 from common.constants import schema
 from datetime import datetime
+from common.custom_logger import getlogger
+logger = getlogger()
 
-def apply_rules(entity_data_df, execution_plan_list,spark):
-        """
+"""
         This function applies a list of data quality (DQ) rules to a given entity dataset.
-
         Steps:
         1. Iterates through the execution plan to extract rule details.
         2. Checks if the entity dataset is empty.
@@ -26,12 +27,13 @@ def apply_rules(entity_data_df, execution_plan_list,spark):
                 - If all rules pass, saves good records.
                 - If any rules fail, separates good and bad records, saving both.
                 - If all rules cause exceptions, saves the records as they are.
-
         Returns:
         - `True` if all rules pass.
         - A track list indicating rule outcomes (pass/fail/exception).
         - `False` if an error occurs during execution.
-        """
+"""
+
+def apply_rules(entity_data_df, execution_plan_list,spark):
         try:
                 track_list = []
                 all_df_list = []
@@ -65,28 +67,27 @@ def apply_rules(entity_data_df, execution_plan_list,spark):
                                 "column_name":var_column_name,
                                 "is_critical" : var_is_critical,
                                 "parameter_value" : var_parameters,
-                                "actual_value" : "",
                                 "total_records" : entity_data_df.count(),
                                 "failed_records_count":0,
                                 "er_status" : "Pass",
                                 "error_records_path" : "",
                                 "error_message" : "",
-                                "execution_timestamp" : datetime.now(),
-                                "year" : int(datetime.now().year),
-                                "month" : int(datetime.now().strftime("%m")),
-                                "day" : int(datetime.now().strftime("%d"))
+                                "execution_timestamp" : str(datetime.now().strftime("%Y-%m-%d %H:%M:%S")),
+                                "year" : str(datetime.now().year),
+                                "month" : str(datetime.now().strftime("%m")),
+                                "day" : str(datetime.now().strftime("%d"))
                         }
                         try:
                                 rule_function = getattr(module,var_rule_name)
-                                                                        
+
                                 if var_column_name and var_parameters:
-                                        result = rule_function(entity_data_df, var_column_name, var_parameters, spark)
+                                        result = rule_function(entity_data_df, var_column_name, var_parameters)
                                 elif var_column_name:
-                                        result = rule_function(entity_data_df, var_column_name, spark)
+                                        result = rule_function(entity_data_df, var_column_name)
                                 elif var_parameters:
-                                        result = rule_function(entity_data_df, var_parameters, spark)
+                                        result = rule_function(entity_data_df, var_parameters)
                                 else:
-                                        result = rule_function(entity_data_df, spark)
+                                        result = rule_function(entity_data_df)
 
                                 
 
@@ -102,13 +103,13 @@ def apply_rules(entity_data_df, execution_plan_list,spark):
                                                 logger.error(result[2])
                                                 logger.debug(f"Skipping the application of rule {var_rule_name} for rule_id {var_rule_id}, Please check {rule_function} function logs.")
                                                 continue
-
+                                        
                                         error_records_df = result[0]
                                         failed_rule = f"'{var_column_name}':'{var_rule_name}'"
                                         error_records_df = error_records_df.withColumn("failed_rules",lit(failed_rule))
 
                                         all_df_list.append(error_records_df)
-
+                                        
                                         result_data["er_status"] = "Fail"
                                         result_data["failed_records_count"] = error_records_df.count()
                                         result_data["error_message"] = result[2]
@@ -117,16 +118,13 @@ def apply_rules(entity_data_df, execution_plan_list,spark):
                                         row_data = Row(**result_data)
                                         result_df = spark.createDataFrame([row_data],schema)
                                         save_execution_result_records(result_df,entity_id)
-                                        
-                                        #save_error_records(error_records_df, plan[2])
-                                        
+
                                         if var_is_critical == "Y":
                                                 track_list.append(1)
                                                 logger.error(f"critical rule {var_rule_name} failed for {var_column_name} for entity_id {entity_id}.")
                                         else:
                                                 track_list.append(0)
                                                 logger.error(f"non-critical rule {var_rule_name} failed for {var_column_name} for entity_id {entity_id}.")
-                        
                         except Exception as e:
                                 track_list.append(3)
                                 logger.error(f"Exception occured during application of Rule {var_rule_name} with rule_id={var_rule_id}: {e}")
@@ -136,7 +134,6 @@ def apply_rules(entity_data_df, execution_plan_list,spark):
                                 logger.info("DQ execution has been completed successfully!")
                                 save_good_records(entity_data_df, entity_id)
                                 return True
-
                         if all_df_list:
                                 error_records_df = reduce(DataFrame.union, all_df_list)
                                 error_records_df = error_records_df.distinct()
@@ -152,6 +149,7 @@ def apply_rules(entity_data_df, execution_plan_list,spark):
                                 save_good_records(entity_data_df, entity_id)
                                 return track_list
                 else:
+                        logger.error("Rules are not processes correctly, please check output logs.")
                         return False
                 
         except Exception as e:

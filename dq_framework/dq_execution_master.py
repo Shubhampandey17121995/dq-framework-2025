@@ -4,11 +4,10 @@ from common import constants
 from common.custom_logger import getlogger
 from common.utils import merge_plans_with_rules,fetch_rules,fetch_entity_path,fetch_filtered_rules
 from common.constants import *
-from common.validation_config import validations
 from common.custom_logger import getlogger
 from common.spark_config import createSparkSession
 from Utilities.table_loader import config_loader,entity_data_loader,data_loader
-from Utilities.validation import execute_validations
+from Utilities.validation import *
 from Utilities.dq__execution import dq_execution
 # initialize logger
 logger = getlogger()
@@ -28,23 +27,28 @@ def main():
 
     #filter dataframes for entity_id
     entity_master_filtered_df = config_loader(entity_master_df,VAR_ENTITY_ID)
+    dfs['dq_entity_master'] = entity_master_filtered_df
     execution_plan_filtered_df = config_loader(execution_plan_df,VAR_ENTITY_ID)
+    dfs['dq_execution_plan'] = execution_plan_filtered_df
 
     #Filter rules from rule_master_df based on rule list fetch from execution_plan_df
     rule_list = fetch_rules(execution_plan_filtered_df)
-    if not rule_list:
-        logger.error(f"Rules does not exists in execution_plan_df for entity_id={VAR_ENTITY_ID}")
-        return False
     rule_master_filtered_df=fetch_filtered_rules(rule_list,rule_master_df)
+    dfs['df_rule_master'] = rule_master_filtered_df
 
     # apply validation
-    execute_validations(validations)
-    
-    #fetch the entity file path from entity_master_df. fetch table from file_path
-    Entity_File_Path = fetch_entity_path(entity_master_df,VAR_ENTITY_ID)
-    if not Entity_File_Path:
+    metadata = load_required_metadata(DIRECTORY_PATH)
+    validations = generate_validation(dfs,metadata)
+    validation_status = execute_validations(validations)
+    if not validation_status:
+        logger.error("Validation process has been failed, cannot proceed with furthur process.")
         return False
-    entity_data_df=data_loader(Entity_File_Path)
+    #fetch the entity file path from entity_master_df. fetch table from file_path
+    entity_File_Path = fetch_entity_path(entity_master_df,VAR_ENTITY_ID)
+    if not entity_File_Path:
+        return False
+    # load entity df
+    entity_data_df=data_loader(entity_File_Path,spark)
     # apply dq
     execution_plan_with_rule_df = merge_plans_with_rules(execution_plan_filtered_df,rule_master_filtered_df)
     dq_execution(execution_plan_with_rule_df,entity_data_df,spark)

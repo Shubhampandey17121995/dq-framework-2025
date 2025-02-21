@@ -1,3 +1,7 @@
+from pyspark.sql.functions import col
+from common.custom_logger import getlogger
+logger = getlogger()
+
 # Load configuration table data
 def config_loader(df, entity_id):
         try:
@@ -22,12 +26,11 @@ def entity_data_loader(spark, entity_master_path, execution_plan_path, execution
         execution_plan_df = spark.read.format("iceberg").table(execution_plan_path)
         execution_result_df = spark.read.format("iceberg").table(execution_result_path)
         rule_master_df = spark.read.format("iceberg").table(rule_master_path)
-        
         return entity_master_df, execution_plan_df, execution_result_df, rule_master_df
 
 
 
-def data_loader(entity_path):
+def data_loader(entity_path,spark):
         # Extract file extension
         file_format = entity_path.split('.')[-1].lower()
 
@@ -35,10 +38,8 @@ def data_loader(entity_path):
         try:
                 logger.info(f"Attempting to read file: {entity_path} as {file_format.upper()}")
                 df = spark.read.format(file_format).option("header", "true").option("inferSchema", "true").load(entity_path)
-                return df #added by shubham
                 logger.info(f"Successfully read file as {file_format.upper()}")
+                return df
         except Exception as e:
                 logger.error(f"Error reading file {entity_path}: {e}\nUnsupported or unknown file format.")
-                return None #added by shubham
-
-
+                return None
