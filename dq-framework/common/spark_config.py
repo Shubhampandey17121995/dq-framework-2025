@@ -1,55 +1,18 @@
-#Initialize SparkSession
-def createSparkSession():
-    """
-    step 1: set spark configuration for aws s3
-    step 2: return sparksession
-    """
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-"""
-import sys
-import os
-import time
 from pyspark.sql import SparkSession
-#Replace <aws_region> with AWS region name.
-#Replace <aws_account_id> with AWS account ID.
+from common.custom_logger import getlogger
+logger = getlogger()
 def createSparkSession():
-    spark = SparkSession.builder.appName('osspark') \
-    .config('spark.jars.packages', 'org.apache.iceberg:iceberg-spark-runtime-3.5_2.12:1.4.1,software.amazon.awssdk:bundle:2.20.160,software.amazon.awssdk:url-connection-client:2.20.160') \
-    .config('spark.sql.extensions', 'org.apache.iceberg.spark.extensions.IcebergSparkSessionExtensions') \
-    .config('spark.sql.defaultCatalog', 'spark_catalog') \
-    .config('spark.sql.catalog.spark_catalog', 'org.apache.iceberg.spark.SparkCatalog') \
-    .config('spark.sql.catalog.spark_catalog.type', 'rest') \
-    .config('spark.sql.catalog.spark_catalog.uri','https://glue.<aws_region>.amazonaws.com/iceberg') \
-    .config('spark.sql.catalog.spark_catalog.warehouse','<aws_account_id>') \
-    .config('spark.sql.catalog.spark_catalog.rest.sigv4-enabled','true') \
-    .config('spark.sql.catalog.spark_catalog.rest.signing-name','glue') \
-    .config('spark.sql.catalog.spark_catalog.rest.signing-region', <aws_region>) \
-    .config('spark.sql.catalog.spark_catalog.io-impl','org.apache.iceberg.aws.s3.S3FileIO') \
-    .config('spark.hadoop.fs.s3a.aws.credentials.provider','org.apache.hadoop.fs.s3a.SimpleAWSCredentialProvider') \
-    .config('spark.sql.catalog.spark_catalog.rest-metrics-reporting-enabled','false') \
-    .getOrCreate()
+    spark = SparkSession.builder \
+        .appName("IcebergTableReader") \
+        .config("spark.sql.extensions", "org.apache.iceberg.spark.extensions.IcebergSparkSessionExtensions") \
+        .config("spark.sql.catalog.job_catalog", "org.apache.iceberg.spark.SparkCatalog") \
+        .config("spark.sql.catalog.job_catalog.catalog-impl", "org.apache.iceberg.aws.glue.GlueCatalog") \
+        .config("spark.sql.catalog.job_catalog.io-impl", "org.apache.iceberg.aws.s3.S3FileIO") \
+        .config("spark.sql.catalog.job_catalog.warehouse", "s3://dq-framework-tables/DQ_TABLES/") \
+        .config("spark.sql.sources.partitionOverwriteMode", "dynamic") \
+        .config("spark.sql.iceberg.handle-timestamp-without-timezone", "true") \
+        .getOrCreate()
+    logger.info("Created spark session")
     return spark
-"""
+
+

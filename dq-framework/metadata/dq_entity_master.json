@@ -1,9 +1,9 @@
 {
-    "DQ_ENTITY_MASTER": {
+    "dq_entity_master": {
         "columns": [
           {
             "name": "entity_id",
-            "type": "string",
+            "type": "int",
             "primary_key": true,
             "nullable": false
           },
@@ -33,7 +33,7 @@
           },
           {
             "name": "number_of_columns",
-            "type": "string",
+            "type": "int",
             "primary_key": false,
             "nullable": true
           },
@@ -51,7 +51,7 @@
           },
           {
             "name": "last_updated_date",
-            "type": "string",
+            "type": "date",
             "primary_key": false,
             "nullable": false
           },

@@ -1,57 +1,58 @@
-
+import sys
+from awsglue.utils import getResolvedOptions
+from common import constants
+from common.custom_logger import getlogger
+from common.utils import merge_plans_with_rules,fetch_rules,fetch_entity_path,fetch_filtered_rules
 from common.constants import *
-from common.custom_logger import *
-from common.spark_config import *
-from utilities.table_loader import *
-from utilities.validation import *
-from utilities.dq__execution import *
-
+from common.custom_logger import getlogger
+from common.spark_config import createSparkSession
+from Utilities.table_loader import config_loader,entity_data_loader,data_loader
+from Utilities.validation import *
+from Utilities.dq__execution import dq_execution
+# initialize logger
+logger = getlogger()
+# take entity_id as input paramater and save it in constants
+args = getResolvedOptions(sys.argv, ['entity_id'])
+constants.VAR_ENTITY_ID = args['entity_id']
 
 def main():
 
-    """
-        #runtime input from glue job.
-        Step 1: Get custom logger.
-        Step 2: Initialize the spark session.
-        Step 3: Load configuration from configuration table in a df => rule_master_df, entity_master_df, execution_plan_df.
-        Step 4: Perform metadata validation for configuration table df's.
-        Step 5: fetch the entity file path from entity_master_df.
-        Step 6: load entity data in df => entity_data_df.
-        Step 7: Execute the DQ framework.
-    """
+    #Initialize spark session
+    spark=createSparkSession()
+    
+    # load config tables
+    entity_master_df, execution_plan_df, execution_result_df, rule_master_df = entity_data_loader(
+        spark,VAR_S3_ENTITY_MASTER_PATH, VAR_S3_EXECUTION_PLAN_PATH, VAR_S3_EXECUTION_RESULT_PATH, VAR_S3_RULE_MASTER_PATH
+    )
+
+    #filter dataframes for entity_id
+    entity_master_filtered_df = config_loader(entity_master_df,VAR_ENTITY_ID)
+    dfs['dq_entity_master'] = entity_master_filtered_df
+    execution_plan_filtered_df = config_loader(execution_plan_df,VAR_ENTITY_ID)
+    dfs['dq_execution_plan'] = execution_plan_filtered_df
+
+    #Filter rules from rule_master_df based on rule list fetch from execution_plan_df
+    rule_list = fetch_rules(execution_plan_filtered_df)
+    rule_master_filtered_df=fetch_filtered_rules(rule_list,rule_master_df)
+    dfs['df_rule_master'] = rule_master_filtered_df
+
+    # apply validation
+    metadata = load_required_metadata(DIRECTORY_PATH)
+    validations = generate_validation(dfs,metadata)
+    validation_status = execute_validations(validations)
+    if not validation_status:
+        logger.error("Validation process has been failed, cannot proceed with furthur process.")
+        return False
+    #fetch the entity file path from entity_master_df. fetch table from file_path
+    entity_File_Path = fetch_entity_path(entity_master_df,VAR_ENTITY_ID)
+    if not entity_File_Path:
+        return False
+    # load entity df
+    entity_data_df=data_loader(entity_File_Path,spark)
+    # apply dq
+    execution_plan_with_rule_df = merge_plans_with_rules(execution_plan_filtered_df,rule_master_filtered_df)
+    dq_execution(execution_plan_with_rule_df,entity_data_df,spark)
 
 
 if __name__ == "__main__":
     main()
-
-
-"""
-    Step 7: Execute the DQ framework.
-
-        In this step we call the dq_execution() function.
-        It takes following parameters:
-            execution_plan_df : dataframe that contains plan information for a entity.
-            entity_data_df: dataframe on which we have to apply the rules.
-            rule_master_df: to fetch names of the rules.
-        
-        1. Call the fetch_execution_plan() function
-            This function extracts the plans information for entity from execution plan df
-            1.1 this function takes following parameters:
-                execution_plan_df : dataframe that contains plan information for a entity
-            1.2 function extracts the plans information for entity from execution plan df
-            1.2 return the list of tuples of plans e.g. execution_plan_list[(rule_id, column_name, paramaters, is_critical, etc.)]
-
-        2. Call the apply_rules() function.
-            This function will apply rules on actual_entity_data.
-            2.1 this function takes following parameters:
-			    entity_data_df: dataframe on which rules to be applied
-			    rule_master_df: dataframe to fetch the rule name related to rule id
-			    execution_plan_list: list of tuples of plan info e.g. execution_plan_list[(rule_id, column_name, paramaters, is_critical, etc.)]
-            2.2 for each plan in list it applies the rules on the column in entity_data_df
-            2.3 it keeps the track of passed and failed rules in a list.
-            2.5 this function returns the list of rules passed/failed on the entity.
-
-        3. count the passed and failed rules from track_list.(1= pass , 0= fail)
-
-        4. print how many rules passed from total rules in track_list.
-"""

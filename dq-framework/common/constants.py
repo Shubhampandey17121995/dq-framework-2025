@@ -1,20 +1,55 @@
-VAR_S3_RULE_MASTER_PATH = "s3://dq-framework/dq_rule_master/"
-VAR_S3_BUCKET_PATH = "//S3_BUCKET_PATH"
-VAR_S3_ENTITY_MASTER_PATH = "s3://dq-framework/dq_entity_master/"
-VAR_S3_EXECUTION_PLAN_PATH = "s3://dq-framework/dq_execution_plan/"
-VAR_S3_EXECUTION_RESULT_PATH = "s3://dq-framework/dq_execution_result/"
-VAR_ERROR_RECORD_PATH = "s3://error_record_path/"
+import importlib.resources as pkg_resources
+import json
+import metadata
+import importlib.resources as pkg_resources
+from pyspark.sql.types import StructType, StructField, StringType, IntegerType
+# schema to create the df of execution result
+schema = StructType([
+            StructField("ep_id", IntegerType(), False),
+            StructField("rule_id", IntegerType(), False),
+            StructField("entity_id", IntegerType(), False),
+            StructField("column_name", StringType(), True),
+            StructField("is_critical", StringType(), True),
+            StructField("parameter_value", StringType(), True),
+            StructField("total_records", IntegerType(), False),
+            StructField("failed_records_count", IntegerType(), False),
+            StructField("er_status", StringType(), False),
+            StructField("error_records_path", StringType(), True),
+            StructField("error_message", StringType(), True),
+            StructField("execution_timestamp", StringType(), False),
+            StructField("year", StringType(), False),
+            StructField("month", StringType(), False),
+            StructField("day", StringType(), False)
+            ])
 
-ENTITY_ID = "entity_001" #USER INPUT
+# entity id
+VAR_ENTITY_ID = None
+
+# config table paths
+VAR_S3_RULE_MASTER_PATH = "job_catalog.dq_testdb2.df_rule_master"
+VAR_S3_ENTITY_MASTER_PATH = "job_catalog.dq_testdb2.dq_entity_master"
+VAR_S3_EXECUTION_PLAN_PATH = "job_catalog.dq_testdb2.dq_execution_plan"
+VAR_S3_EXECUTION_RESULT_PATH = "job_catalog.dq_testdb2.dq_execution_result"
+
+# result store paths
+VAR_BAD_RECORD_PATH = "s3://dq-results-store/bad_records/"
+VAR_GOOD_RECORD_PATH = "s3://dq-results-store/good_records/"
+
+# Directory path containing JSON files
+DIRECTORY_PATH = "metadata"
 
 
+# Required table metadata
+REQUIRED_TABLE_METADATA = {
+    "dq_entity_master": "dq_entity_master.json",
+    "df_rule_master": "dq_rule_master.json",
+    "dq_execution_plan": "dq_execution_plan.json"
+}
 
-# spark configuration variables
-SPARK_CATALOG_NAME = "s3tablesbucket"
-SPARK_CATALOG_IMPL = "software.amazon.s3tables.iceberg.S3TablesCatalog"
-SPARK_CATALOG_WAREHOUSE = "arn:aws:s3tables:us-east-1:111122223333:bucket/amzn-s3-demo-table-bucket"
-SPARK_EXTENSIONS = "org.apache.iceberg.spark.extensions.IcebergSparkSessionExtensions"
-SPARK_JARS_PACKAGES = (
-    "org.apache.iceberg:iceberg-spark-runtime-3.5_2.12:1.6.1,"
-    "software.amazon.s3tables:s3-tables-catalog-for-iceberg-runtime:0.1.3"
-)
+
+# Define metadata, dfs, and validations after function definitions
+dfs = {
+    "dq_entity_master": None,
+    "df_rule_master": None,
+    "dq_execution_plan": None
+}

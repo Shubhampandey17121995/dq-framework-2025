@@ -1,12 +1,12 @@
 
 {
-    "DQ_RULE_MASTER": {
+    "df_rule_master": {
       "columns": [
         {
           "name": "rule_id",
-          "type": "string",
+          "type": "int",
           "primary_key": true,
-          "nullable": false          
+          "nullable": false
         },
         {
           "name": "rule_name",
@@ -28,7 +28,7 @@
         },
         {
           "name": "last_updated_date",
-          "type": "string",
+          "type": "date",
           "primary_key": false,
           "nullable": false
         }
