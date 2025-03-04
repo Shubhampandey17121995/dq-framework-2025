@@ -24,7 +24,6 @@ def join_execution_plan_with_rules(execution_plan_df,rules_df):
     except Exception as e:
         logger.error(f"Exception occured in join_execution_plan_with_rules(): {e}")
 
-
 # fetch path from entity master table path
 def fetch_entity_path(entity_master_df,entity_id):
     try:

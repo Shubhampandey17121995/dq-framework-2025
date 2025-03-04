@@ -17,6 +17,7 @@ def createSparkSession():
     logger.info("Created spark session")
     return spark
 """
+
 def createSparkSession():
     spark = SparkSession.builder \
         .appName("IcebergTableReader") \

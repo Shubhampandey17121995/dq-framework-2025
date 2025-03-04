@@ -18,7 +18,7 @@ def save_execution_result(result_df,entity_id):
                         .mode('append')\
                         .saveAsTable(VAR_S3_EXECUTION_RESULT_PATH)
                 # Log success message after successful save operation
-                logger.info(f"[DQ_RESULT_SAVE] Result data saved for Entity id:{entity_id}")
+                logger.info(f"[DQ_RESULT_SAVE] Result data saved for Entity id:{entity_id}. STATUS:'SUCCESS'")
         except Exception as e:
                 # Log error if an exception occurs while saving the results
                 logger.error(f"Exception occured during saving the result records for entity_id={entity_id}: {e}")
@@ -38,7 +38,7 @@ def save_invalid_records(error_records_df,entity_id):
                         .format('parquet')\
                         .save(VAR_BAD_RECORD_PATH)
                 # Log success message after saving bad records
-                logger.info(f"[DQ_INVALID_RECORDS_SAVE] Invalid records saved for entity_id {entity_id}")
+                logger.info(f"[DQ_INVALID_RECORDS_SAVE] Invalid records saved for entity_id {entity_id}. STATUS:'SUCCESS'")
         except Exception as e:
                 # Log error if an exception occurs while saving bad records
                 logger.error(f"Exception occured in save_bad_records() for entity_id={entity_id}: {e}")
@@ -58,7 +58,7 @@ def save_valid_records(error_records_df,entity_id):
                         .format('parquet')\
                         .save(VAR_GOOD_RECORD_PATH)
                 # Log success message after saving good records
-                logger.info(f"[DQ_VALID_RECORDS_SAVE] Valid records saved for entity_id {entity_id}")
+                logger.info(f"[DQ_VALID_RECORDS_SAVE] Valid records saved for entity_id {entity_id}. STATUS:'SUCCESS'")
         except Exception as e:
                 # Log error if an exception occurs while saving good records
                 logger.error(f"Exception occured in save_good_records() for entity_id={entity_id}: {e}")

@@ -49,7 +49,7 @@ def execute_data_quality_rules(entity_data_df, execution_plans_list,spark):
                         var_er_id = int(hashlib.sha256(f"{entity_id}-{var_plan_id}-{int(time.time() * 1000)}".encode()).hexdigest(), 16) % 900000 + 100000
 
                         if entity_data_df.count() == 0:
-                                return f"Dataframe is Empty for entity_id {entity_id}.Make sure data exists for dataframe at source for entity_id {entity_id}.Status='FAILED'"
+                                return f"Dataframe is Empty for entity_id {entity_id}.Make sure data exists for dataframe at source for entity_id {entity_id}.Status:'FAILED'"
                         
                         if not var_rule_name:
                                 track_list.append(3)
@@ -72,7 +72,7 @@ def execute_data_quality_rules(entity_data_df, execution_plans_list,spark):
                                 "parameter_value" : var_parameters,
                                 "total_records" : entity_data_df.count(),
                                 "failed_records_count":0,
-                                "er_status" : "Pass",
+                                "er_status" : "SUCCESS",
                                 "error_records_path" : "",
                                 "error_message" : "",
                                 "execution_timestamp" : str(datetime.now().strftime("%Y-%m-%d %H:%M:%S")),
@@ -98,7 +98,7 @@ def execute_data_quality_rules(entity_data_df, execution_plans_list,spark):
                                         track_list.append(2)
                                         row_data = Row(**execution_result)
                                         execution_result_df = spark.createDataFrame([row_data],EXECUTION_RESULTS_SCHEMA)
-                                        logger.info(f"[DQ_RULE_EXECUTION] Saving the result, Status:{execution_result["er_status"]},Execution_id:{var_er_id}")
+                                        logger.info(f"[DQ_RULE_EXECUTION] Saving the result, STATUS:{execution_result['er_status']}, EXECUTION_RESULT_ID:{var_er_id}")
                                         save_execution_result(execution_result_df,entity_id)
 
                                 else:
@@ -114,14 +114,14 @@ def execute_data_quality_rules(entity_data_df, execution_plans_list,spark):
 
                                         failed_records_df_list.append(failed_records_df)
                                         
-                                        execution_result["er_status"] = "Fail"
+                                        execution_result["er_status"] = "FAILED"
                                         execution_result["failed_records_count"] = failed_records_df.count()
                                         execution_result["error_message"] = result[2]
                                         execution_result["error_records_path"] = f"{VAR_BAD_RECORD_PATH}year={datetime.now().year}/month={datetime.now().month}/day={datetime.now().day}/entity_id={entity_id}"
                                         
                                         row_data = Row(**execution_result)
                                         execution_result_df = spark.createDataFrame([row_data],EXECUTION_RESULTS_SCHEMA)
-                                        logger.info(f"[DQ_RESULT_SAVE] Saving the result, Status:{execution_result["er_status"]},Execution_id:{var_er_id}")
+                                        logger.info(f"[DQ_RESULT_SAVE] Saving the result, STATUS:{execution_result['er_status']}, EXECUTION_RESULT_ID:{var_er_id}")
                                         save_execution_result(execution_result_df,entity_id)
 
                                         if var_is_critical == "Y":
@@ -137,7 +137,7 @@ def execute_data_quality_rules(entity_data_df, execution_plans_list,spark):
                 if track_list:
                         passed_rules_count = track_list.count(2)
                         if len(set(track_list)) == 1 and track_list[0] == 2:
-                                logger.info(f"[DQ_RULE_EXECUTION]  Rules execution has been completed successfully! Total Passed Rules: {passed_rules_count}, Status:'PASSED'")
+                                logger.info(f"[DQ_RULE_EXECUTION]  Rules execution has been completed successfully! Total Passed Rules: {passed_rules_count}, STATUS:'SUCCESS'")
                                 save_valid_records(entity_data_df, entity_id)
                                 return True
                         if failed_records_df_list:
@@ -150,11 +150,11 @@ def execute_data_quality_rules(entity_data_df, execution_plans_list,spark):
                                 save_valid_records(valid_records_df,entity_id)
                                 return track_list
                         else:
-                                logger.info("[DQ_RULE_EXECUTION] Saving the records as-is, because all rules encountered exceptions for entity_id={entity_id}. Status:'FAILED'")
+                                logger.info("[DQ_RULE_EXECUTION] Saving the records as-is, because all rules encountered exceptions for entity_id={entity_id}. STATUS:'FAILED'")
                                 save_valid_records(entity_data_df, entity_id)
                                 return track_list
                 else:
-                        logger.error("[DQ_RULE_EXECUTION] Rules are not processes correctly, please check output logs. Status:'FAILED'")
+                        logger.error("[DQ_RULE_EXECUTION] Rules are not processes correctly, please check output logs. STATUS:'FAILED'")
                         return False
                 
         except Exception as e:

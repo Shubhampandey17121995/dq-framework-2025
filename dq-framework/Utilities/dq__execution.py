@@ -24,9 +24,9 @@ def execute_data_quality_checks(execution_plan_with_rules_df,entity_data_df,spar
             execution_exceptions = dq_execution_result.count(3)      # Exceptions encountered
             successful_checks = dq_execution_result.count(2)         # Successful validations
             # Log the execution summary
-            logger.info(f"[DQ_CHECK_COMPLETED] DQ Execution Summary: Critical Rules Failed: {critical_failures}, Non-Critical Rules Failed: {non_critical_failures}, Exceptions: {execution_exceptions}, Success: {successful_checks}, Status:'FAILED'")
+            logger.info(f"[DQ_CHECK_COMPLETED] DQ Execution Summary: Critical Rules Failed: {critical_failures}, Non-Critical Rules Failed: {non_critical_failures}, Exceptions: {execution_exceptions}, Success: {successful_checks}, STATUS:'FAILED'")
             # Log the process failure due to rule violations
-            logger.info(f"[DQ_CHECK_COMPLETED]Hence Failing the process")
+            logger.info(f"[DQ_CHECK_COMPLETED] Some rules failed! Hence the DQ process failed. STATUS:'FAILED'")
             return False
         # If result is a string, log the error message and fail execution
         elif isinstance(dq_execution_result,str):

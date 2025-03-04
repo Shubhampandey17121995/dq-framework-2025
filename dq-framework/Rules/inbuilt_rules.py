@@ -12,13 +12,13 @@ def null_check(df,column_name):
         
         if null_count > 0:
             # If null values are found, log an error message and return details
-            error_message = f"[DQ_RULE_EXECUTED] Rule 'Null Check' failed. Column '{column_name}' contains {null_count} null values.Status='FAILED'"
+            error_message = f"[DQ_RULE_EXECUTED] Rule 'Null Check' failed. Column '{column_name}' contains {null_count} null values. STATUS:'FAILED'"
             logger.error(error_message)
             # return df with records failed for check with flag and error message
             return (null_record_df, False, error_message)
         else:
             # If no null values are found, log success and return a success flag
-            logger.info(f"[DQ_RULE_EXECUTED] Rule 'Null Check' passed. Column '{column_name}' contains no null values.Status='PASSED'")
+            logger.info(f"[DQ_RULE_EXECUTED] Rule 'Null Check' passed. Column '{column_name}' contains no null values. STATUS:'SUCCESS'")
             return (None, True,None)
         
     except Exception as e:
@@ -37,13 +37,13 @@ def empty_string_check(df,column_name):
             # If empty strings are found, filter and store those records
             empty_record_df = df.filter(trim(col(column_name)) == "")
             # Log the error and return details
-            error_message = f"[DQ_RULE_EXECUTED] Rule 'Empty String Check' failed. Column '{column_name}' contains {empty_count} empty string values.Status='FAILED'"
+            error_message = f"[DQ_RULE_EXECUTED] Rule 'Empty String Check' failed. Column '{column_name}' contains {empty_count} empty string values.STATUS:'FAILED'"
             logger.error(error_message)
             # return df with records failed for check with flag and error messages
             return (empty_record_df, False, error_message)
         else:
             # If no empty strings are found, log success and return a success flag
-            logger.info(f"[DQ_RULE_EXECUTED] Rule 'Empty String Check' passed. Column '{column_name}' contains no empty string values.Status='PASSED'")
+            logger.info(f"[DQ_RULE_EXECUTED] Rule 'Empty String Check' passed. Column '{column_name}' contains no empty string values.STATUS:'SUCCESS'")
             return (None, True,None)
     except Exception as e:
         # Handle any unexpected exceptions and log the error
@@ -71,23 +71,23 @@ def primary_key_uniqueness_check(df,primary_key_column):
         null_count = null_record_df.count()
         # Handle scenarios based on duplicates and NULL counts
         if duplicate_count > 0 and null_count > 0:
-            error_message = f"[DQ_RULE_EXECUTED] Rule 'Primary Key Uniqueness check' failed. Primary key column '{primary_key_column}' contains {duplicate_count} duplicate and {null_count} null values.Status='FAILED'"
+            error_message = f"[DQ_RULE_EXECUTED] Rule 'Primary Key Uniqueness check' failed. Primary key column '{primary_key_column}' contains {duplicate_count} duplicate and {null_count} null values.STATUS:'FAILED'"
             logger.error(error_message)
             # return df with records failed for check with flag and error message
             return (duplicate_record_df.union(null_record_df), False, error_message)
         elif duplicate_count > 0:
-            error_message = f"[DQ_RULE_EXECUTED] Rule 'Primary Key Uniqueness check' failed. Primary key column '{primary_key_column}' contains {duplicate_count} duplicate values.Status='FAILED'"
+            error_message = f"[DQ_RULE_EXECUTED] Rule 'Primary Key Uniqueness check' failed. Primary key column '{primary_key_column}' contains {duplicate_count} duplicate values.STATUS:'FAILED'"
             logger.error(error_message)
             # return df with records failed for check with flag and error message
             return (duplicate_record_df, False, error_message)
         elif null_count > 0:
-            error_message = f"[DQ_RULE_EXECUTED] Rule 'Primary Key Uniqueness check' failed. Primary key column '{primary_key_column}' contains {null_count} null values.Status='FAILED'"
+            error_message = f"[DQ_RULE_EXECUTED] Rule 'Primary Key Uniqueness check' failed. Primary key column '{primary_key_column}' contains {null_count} null values.STATUS:'FAILED'"
             logger.error(error_message)
             # return df with records failed for check with flag and error message
             return (null_record_df, False, error_message)
         
         # If no duplicates or NULLs are found, return success
-        logger.info(f"[DQ_RULE_EXECUTED] Rule 'Primary Key Uniqueness check' passed. Primary key column '{primary_key_column}' contains no duplicate values.Status='PASSED'")
+        logger.info(f"[DQ_RULE_EXECUTED] Rule 'Primary Key Uniqueness check' passed. Primary key column '{primary_key_column}' contains no duplicate values.STATUS:'SUCCESS'")
         return (None, True, None)
     except Exception as e:
         # Handle exceptions and log the error
@@ -106,12 +106,12 @@ def duplicate_records_check(df):
             duplicate_record_df = df.groupBy(df.columns).count().filter(col("count") > 1).drop("count")
                 #duplicate_record_df = duplicate_record_df.join(df, on=df.columns, how='inner')
             # Log the error and return details
-            error_message = f"[DQ_RULE_EXECUTED] Rule 'Duplicate records check' failed. Data Contains {duplicate_count} duplicate records.Status='FAILED'"
+            error_message = f"[DQ_RULE_EXECUTED] Rule 'Duplicate records check' failed. Data Contains {duplicate_count} duplicate records.STATUS:'FAILED'"
             logger.error(error_message)
             # return df with records failed for check with flag and error message
             return (duplicate_record_df, False, error_message)
         # If no duplicates are found, log success and return a success flag
-        logger.info("[DQ_RULE_EXECUTED] Rule 'Duplicate records check' passed. Data Contains no duplicate records.Status='PASSED'")
+        logger.info("[DQ_RULE_EXECUTED] Rule 'Duplicate records check' passed. Data Contains no duplicate records.STATUS:'SUCCESS'")
         return (None,True,None)
         
     except Exception as e:
@@ -132,12 +132,12 @@ def duplicate_values_check(df,column_name):
             # Fetch records from the original DataFrame that have duplicate values
             duplicate_record_df = duplicate_record_df.join(df.distinct(), on=column_name, how='inner')
             # Log the error and return details
-            error_message = f"[DQ_RULE_EXECUTED] Rule 'Duplicate values check' failed. Column '{column_name}' contains {duplicate_count} duplicate values.Status='FAILED'"
+            error_message = f"[DQ_RULE_EXECUTED] Rule 'Duplicate values check' failed. Column '{column_name}' contains {duplicate_count} duplicate values.STATUS:'FAILED'"
             logger.error(error_message)
             # return df with records failed for check with flag and error message
             return (duplicate_record_df, False, error_message)
         # If no duplicates are found, log success and return a success flag
-        logger.info(f"[DQ_RULE_EXECUTED] Rule 'Duplicate values check' passed. Column '{column_name}' contains no duplicate values.Status='PASSED'")
+        logger.info(f"[DQ_RULE_EXECUTED] Rule 'Duplicate values check' passed. Column '{column_name}' contains no duplicate values.STATUS:'SUCCESS'")
         return (None, True, None)
     
     except Exception as e:
@@ -156,12 +156,12 @@ def expected_value_check(df,column_name,expected_value):
             # Identify records with values different from the expected value or NULL values
             invalid_record_df = df.filter((df[column_name] != expected_value) | (df[column_name].isNull()))
             # Log the error and return details
-            error_message = f"[DQ_RULE_EXECUTED] Rule 'Expected values check' failed. Column '{column_name}' contains {invalid_count} records with values different from the expected value '{expected_value}'.Status='FAILED'"
+            error_message = f"[DQ_RULE_EXECUTED] Rule 'Expected values check' failed. Column '{column_name}' contains {invalid_count} records with values different from the expected value '{expected_value}'.STATUS:'FAILED'"
             logger.error(error_message)
             # return df with records failed for check with flag and error message
             return (invalid_record_df, False, error_message)
         # If all values match the expected value, log success and return a success flag
-        logger.info(f"[DQ_RULE_EXECUTED] Rule 'Expected values check' passed. Column '{column_name}' contains no records with values different from the expected value '{expected_value}'.Status='PASSED'")
+        logger.info(f"[DQ_RULE_EXECUTED] Rule 'Expected values check' passed. Column '{column_name}' contains no records with values different from the expected value '{expected_value}'.STATUS:'SUCCESS'")
         return (None, True, None)
     except Exception as e:
         # Handle any unexpected exceptions and log the error
@@ -180,13 +180,13 @@ def date_format_check(df,column_name,date_format):
         invalid_count = invalid_date_df.count()
         if invalid_count > 0:
             # Log and return details if invalid date formats exist
-            error_message = f"[DQ_RULE_EXECUTED] Rule 'Date format check' failed. Column '{column_name}' contains {invalid_count} records with invalid date format.Status='FAILED'"
+            error_message = f"[DQ_RULE_EXECUTED] Rule 'Date format check' failed. Column '{column_name}' contains {invalid_count} records with invalid date format.STATUS:'FAILED'"
             logger.error(error_message)
             # return df with records failed for check with flag and error message
             return (invalid_date_df.drop(col("parsed_date")), False, error_message)
         else:
             # If all dates are valid, log success and return a success flag
-            logger.info(f"[DQ_RULE_EXECUTED] Rule 'Date format check' passed. Column '{column_name}' contains no records with invalid date format.Status='PASSED'")
+            logger.info(f"[DQ_RULE_EXECUTED] Rule 'Date format check' passed. Column '{column_name}' contains no records with invalid date format.STATUS:'SUCCESS'")
             return (None, True,None)
     except Exception as e:
         # Handle unexpected exceptions and log the error
@@ -205,12 +205,12 @@ def min_value_constraint_check(df,column_name,min_value):
             # Filter records that violate the minimum value constraint
             min_value_df = df.filter((df[column_name] < min_value) | (df[column_name].isNull()))
             # Log and return the error message along with the invalid records
-            error_message = f"[DQ_RULE_EXECUTED] Rule 'Minimum value constraint check' failed. Column '{column_name}' contains {min_value_count} records with values less than the minimum value '{min_value}'.Status='FAILED'"
+            error_message = f"[DQ_RULE_EXECUTED] Rule 'Minimum value constraint check' failed. Column '{column_name}' contains {min_value_count} records with values less than the minimum value '{min_value}'.STATUS:'FAILED'"
             logger.error(error_message)
             # return df with records failed for check with flag and error message
             return (min_value_df, False, error_message)
         # If all values meet the constraint, log success and return a success flag
-        logger.info(f"[DQ_RULE_EXECUTED] Rule 'Minimum value constraint check' passed. Column '{column_name}' contains no records with values less than the minimum value '{min_value}'.Status='PASSED'")
+        logger.info(f"[DQ_RULE_EXECUTED] Rule 'Minimum value constraint check' passed. Column '{column_name}' contains no records with values less than the minimum value '{min_value}'.STATUS:'SUCCESS'")
         return (None, True, None)
     
     except Exception as e:
@@ -229,12 +229,12 @@ def max_value_constraint_check(df,column_name,max_value):
             # Filter records that violate the maximum value constraint
             max_value_df = df.filter((df[column_name] > max_value) | (df[column_name].isNull()))
             # Log and return the error message along with the invalid records
-            error_message = f"[DQ_RULE_EXECUTED] Rule 'Maximum value constraint check' failed. Column '{column_name}' contains {max_value_count} records with values more than the maximum value '{max_value}'.Status='FAILED'"
+            error_message = f"[DQ_RULE_EXECUTED] Rule 'Maximum value constraint check' failed. Column '{column_name}' contains {max_value_count} records with values more than the maximum value '{max_value}'.STATUS:'FAILED'"
             logger.error(error_message)
             # return df with records failed for check with flag and error message
             return (max_value_df, False, error_message)
         # If all values meet the constraint, log success and return a success flag
-        logger.info(f"[DQ_RULE_EXECUTED] Rule 'Maximum value constraint check' passed. Column '{column_name}' contains no records with values more than the maximum value '{max_value}'.Status='PASSED'")
+        logger.info(f"[DQ_RULE_EXECUTED] Rule 'Maximum value constraint check' passed. Column '{column_name}' contains no records with values more than the maximum value '{max_value}'.STATUS:'SUCCESS'")
         return (None, True, None)
     except Exception as e:
         # Handle exceptions and log the error
@@ -251,13 +251,13 @@ def column_length_check(df,column_name,length_):
         invalid_count = invalid_records_df.count()
         if invalid_count > 0:
             # Log and return the error message along with the invalid records
-            error_message = f"[DQ_RULE_EXECUTED] Rule 'Column length check' failed. Column '{column_name}' contains {invalid_count} records with length not equal to {length_}.Status='FAILED'"
+            error_message = f"[DQ_RULE_EXECUTED] Rule 'Column length check' failed. Column '{column_name}' contains {invalid_count} records with length not equal to {length_}.STATUS:'FAILED'"
             logger.error(error_message)
             # return df with records failed for check with flag and error message
             return (invalid_records_df, False, error_message)
         
         # If all values meet the constraint, log success and return a success flag
-        logger.info(f"[DQ_RULE_EXECUTED] Rule 'Column length check' passed. Column '{column_name}' contains no records with length not equal to {length_}.Status='PASSED'")
+        logger.info(f"[DQ_RULE_EXECUTED] Rule 'Column length check' passed. Column '{column_name}' contains no records with length not equal to {length_}.STATUS:'SUCCESS'")
         return (None, True, None)
     except Exception as e:
         # Handle exceptions and log the error

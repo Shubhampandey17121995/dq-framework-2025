@@ -52,6 +52,7 @@ REQUIRED_METADATA_FILES = {
     "dq_execution_plan": "dq_execution_plan.json"
 }
 
+
 # validation to be performed
 DATAYPE_VALIDATION = "Column data type validation"
 NULLABLE_VALIDATION = "Nullable constraint validation"
