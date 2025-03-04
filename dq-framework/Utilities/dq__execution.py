@@ -1,39 +1,47 @@
 import sys
 import os
-from common.utils import fetch_execution_plan
-from Utilities.apply_rules import apply_rules
+from common.utils import get_active_execution_plans
+from Utilities.apply_rules import execute_data_quality_rules
+from common.custom_logger import getlogger
+logger = getlogger()
 
-
-def dq_execution(execution_plan_with_rule_df,entity_data_df,spark):
+"""
+Executes data quality (DQ) validation by fetching the execution plan and applying rules
+to the provided dataset. It categorizes the results into critical failures, non-critical
+failures, exceptions, and successful rule executions. Logs a summary of the execution
+and returns True if all rules pass, otherwise returns False.
+"""
+def execute_data_quality_checks(execution_plan_with_rules_df,entity_data_df,spark):
     try:
-        plan_list = fetch_execution_plan(execution_plan_with_rule_df)
-        
-        result = apply_rules(entity_data_df,plan_list,spark)
-        
-        if isinstance(result,list):
-            count_critical = result.count(1)
-            count_non_critical = result.count(0)
-            count_exceptions = result.count(3)
-            count_success = result.count(2)
-            logger.info(f"DQ Execution Summary: Critical Rules Failed: {count_critical}, Non-Critical Rules Failed: {count_non_critical}, Exceptions: {count_exceptions}, Success: {count_success}")
-            logger.info(f"Hence Failing the process")
+        # Fetch the execution plan as a list of rules to be applied
+        execution_plans_list = get_active_execution_plans(execution_plan_with_rules_df)
+        # Apply rules on the entity data
+        dq_execution_result = execute_data_quality_rules(entity_data_df,execution_plans_list,spark)
+        # If result is a list, count occurrences of different rule validation statuses
+        if isinstance(dq_execution_result,list):
+            critical_failures = dq_execution_result.count(1)        # Critical rule failures
+            non_critical_failures = dq_execution_result.count(0)    # Non-critical rule failures
+            execution_exceptions = dq_execution_result.count(3)      # Exceptions encountered
+            successful_checks = dq_execution_result.count(2)         # Successful validations
+            # Log the execution summary
+            logger.info(f"[DQ_CHECK_COMPLETED] DQ Execution Summary: Critical Rules Failed: {critical_failures}, Non-Critical Rules Failed: {non_critical_failures}, Exceptions: {execution_exceptions}, Success: {successful_checks}, STATUS:'FAILED'")
+            # Log the process failure due to rule violations
+            logger.info(f"[DQ_CHECK_COMPLETED] Some rules failed! Hence the DQ process failed. STATUS:'FAILED'")
             return False
-        
-        elif isinstance(result,str):
-            logger.error(result)
-            logger.info("DQ EXECUTION FAILED!")
+        # If result is a string, log the error message and fail execution
+        elif isinstance(dq_execution_result,str):
+            logger.error(dq_execution_result)
+            logger.info("[DQ_CHECK_COMPLETED] DQ EXECUTION FAILED!")
             return False
-        
-        elif isinstance(result, bool):
-            if result:
-                logger.info("DQ execution has been completed successfully!")
-                #print("DQ execution has been completed successfully!")
+        # If result is a boolean, determine success or failure
+        elif isinstance(dq_execution_result, bool):
+            if dq_execution_result:
+                logger.info("[DQ_CHECK_COMPLETED] DQ execution has been completed successfully!")
                 return True
-            logger.error("DQ execution has been failed!")
-            #print("DQ execution has been failed!")
+            logger.error("[DQ_CHECK_COMPLETED] DQ execution has been failed!")
             return False
-    
     except Exception as e:
-        logger.error(f"Exception occured in dq_execution():{e}")
+        # Handle any unexpected exceptions and log the error
+        logger.error(f"Exception occurred in execute_data_quality_checks():{e}")
         return False
 

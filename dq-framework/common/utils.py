@@ -1,31 +1,28 @@
-def fetch_execution_plan(execution_plan_with_rule_df):
-    """
-        Extract the plans information for entity from execution plan df
-        
-        args:
-        execution_plan_df : dataframe that contains plan information for a entity
+from pyspark.sql.functions import col
+from common.constants import VAR_ENTITY_ID
+from common.custom_logger import getlogger
+logger = getlogger()
 
-        Steps:
-            1. collect the rows of plans from dataframe
-            2. create the list of tuples of execution plans available for entity.
-                The rule_id, column_name, paramaters, is_critical, etc. will be fetched in the list.
-            3. store the result in a list of tuples
-
-        Output :
-            list: A list of tuples of plan info e.g. execution_plan_list[(rule_id, column_name, paramaters, is_critical, etc.)]
-    """
+#Extracts the active execution plan from the provided DataFrame by filtering rows where
+#'is_active' is "Y". Converts the filtered data into a list of tuples for further processing.
+def get_active_execution_plans(execution_plan_with_rule_df):
     try:
         plan_list = [tuple(row) for row in execution_plan_with_rule_df.filter(execution_plan_with_rule_df.is_active == "Y").collect()]
+        logger.info("[DQ_GET_ACTIVE_PLANS] Active execution plans fetched successfully from execution plan table.")
         return plan_list
     except Exception as e:
         logger.error(f"Exception occured in fetch_execution_plan(): {e}")
 
-def merge_plans_with_rules(execution_plan_df,rules_df):
+
+#Merges the execution plan DataFrame with the rules DataFrame using 'rule_id' as the key.
+#Drops duplicate or unnecessary columns and orders the result by 'ep_id'.
+def join_execution_plan_with_rules(execution_plan_df,rules_df):
     try:
-        execution_plan_with_rule_df = execution_plan_df.join(rules_df.select("rule_id", "rule_name"), execution_plan_df.rule_id == rules_df.rule_id, "inner").drop(execution_plan_df.last_update_date).drop(rules_df.rule_id).orderBy("ep_id")
-        return execution_plan_with_rule_df
+        execution_plan_with_rules_df = execution_plan_df.join(rules_df.select("rule_id", "rule_name"), execution_plan_df.rule_id == rules_df.rule_id, "inner").drop(execution_plan_df.last_update_date).drop(rules_df.rule_id).orderBy("ep_id")
+        logger.info(f"[DQ_JOIN_PLANS_AND_RULES] Execution plans and rules joined successfully for data quality processing.")
+        return execution_plan_with_rules_df
     except Exception as e:
-        logger.error(f"Exception occured in merge_plans_with_rules(): {e}")
+        logger.error(f"Exception occured in join_execution_plan_with_rules(): {e}")
 
 # fetch path from entity master table path
 def fetch_entity_path(entity_master_df, entity_id):
@@ -38,18 +35,21 @@ def fetch_entity_path(entity_master_df, entity_id):
             logger.info(f"File path found for entity_id: {entity_id}")
             return result["file_path"]
         else:
+            logger.error(f"No file path found for entity_id: {entity_id}")
             logger.warning(f"No file path found for entity_id: {entity_id}")
             return None
     except Exception as e:
         logger.error(f"Error fetching file path for entity_id: {entity_id} - {e}")
         return None
-
-
+    
 def fetch_rules(execution_plan_df):
     try:
         # Fetch distinct rule_ids from the dataframe and collect as a list
         rule_list = execution_plan_df.select("rule_id").distinct().rdd.flatMap(lambda x: x).collect()
-        
+
+        if not rule_list:
+            logger.error(f"Rules does not exists in execution_plan_df for entity_id={VAR_ENTITY_ID}")
+            return []
         # Log success
         logger.info("Successfully fetched rule list.")
         return rule_list

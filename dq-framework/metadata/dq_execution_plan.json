@@ -4,24 +4,25 @@
         {
           "name": "ep_id",
           "type": "int",
-          "nullable": False
+          "nullable": false,
+          "primary_key":true
         },
         {
           "name": "rule_id",
           "type": "int",
-          "nullable": False,
-          "foreign_key": True,
+          "nullable": false,
+          "foreign_key": true,
           "references":
             {
-                  "table": "df_rule_master",
+                  "table": "dq_rule_master",
                   "column": "rule_id"
             }
         },
         {
           "name": "entity_id",
           "type": "int",
-          "nullable": False,
-          "foreign_key":True,
+          "nullable": false,
+          "foreign_key":true,
           "references":
             {
                   "table": "dq_entity_master",
@@ -31,29 +32,29 @@
         {
           "name": "column_name",
           "type": "string",
-          "nullable": True
+          "nullable": true
         },
         {
           "name": "parameter_value",
           "type": "string",
-          "nullable": True
+          "nullable": true
         },
         {
           "name": "is_critical",
           "type": "string",
-          "nullable": True,
+          "nullable": true,
           "default_value": "N"
         },
         {
           "name": "is_active",
           "type": "string",
-          "nullable": True,
+          "nullable": true,
           "default_value": "Y"
         },
         {
           "name": "last_update_date",
           "type": "date",
-          "nullable": False
+          "nullable": false
         }
       ]
     }

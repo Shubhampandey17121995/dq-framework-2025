@@ -1,57 +1,56 @@
 import sys
 from awsglue.utils import getResolvedOptions
-from common.custom_logger import getlogger
+from common import constants
 from common.utils import *
 from common.constants import *
-from common.validation_config import *
 from common.custom_logger import *
 from common.spark_config import *
 from Utilities.table_loader import *
 from Utilities.validation import *
-from Utilities.dq__execution import *
+from Utilities.dq__execution import execute_data_quality_checks
+# initialize logger
 logger = getlogger()
-#args = getResolvedOptions(sys.argv, ['entity_id'])
-#entity_id = args['entity_id']
-
+# take entity_id as input paramater and save it in constants
+args = getResolvedOptions(sys.argv, ['entity_id'])
+constants.VAR_ENTITY_ID = args['entity_id']
 
 def main():
-    # Step 1: Get custom logger.
 
-    #Step 2: Initialize the spark session.
+    #Initialize spark session
     spark=createSparkSession()
-
-    #Step 3: Load configuration from configuration table in a df => rule_master_df, entity_master_df, execution_plan_df.
-    entity_master_df, execution_plan_df, execution_result_df, rule_master_df = entity_data_loader(
+    
+    # load config tables
+    entity_master_df, execution_plan_df, execution_result_df, rule_master_df = fetch_tables(
         spark,VAR_S3_ENTITY_MASTER_PATH, VAR_S3_EXECUTION_PLAN_PATH, VAR_S3_EXECUTION_RESULT_PATH, VAR_S3_RULE_MASTER_PATH
     )
-    logger.info("DF loaded Successfully")
 
-    #Step 4: Filter entity and load entity data in df => entity_data_df.
     #filter dataframes for entity_id
-    entity_master_filtered_df = config_loader(entity_master_df,ENTITY_ID)
-    execution_plan_filtered_df = config_loader(execution_plan_df,ENTITY_ID)
+    entity_master_filtered_df = filter_config_by_entity(entity_master_df,VAR_ENTITY_ID)
+    table_dataframes['dq_entity_master'] = entity_master_filtered_df
+    execution_plan_filtered_df = filter_config_by_entity(execution_plan_df,VAR_ENTITY_ID)
+    table_dataframes['dq_execution_plan'] = execution_plan_filtered_df
 
-    #description:Filter rules from rule_master_df based on rule list fetch from execution_plan_df
+    #Filter rules from rule_master_df based on rule list fetch from execution_plan_df
     rule_list = fetch_rules(execution_plan_filtered_df)
-
-    rule_master_filtered_df=fetch_filtered_rules(rule_list,rule_master_df)
-
-    
+    rule_master_filtered_df = fetch_filtered_rules(rule_list,rule_master_df)
+    table_dataframes['dq_rule_master'] = rule_master_filtered_df
 
     # apply validation
-    execute_validations(validations)
-
-
-    #Step 5: fetch the entity file path from entity_master_df. fetch table from file_path
-    Entity_File_Path = fetch_entity_path(entity_master_df,entity_id)
-    entity_data_df=data_loader(Entity_File_Path)
-    
-
+    metadata = load_metadata(METADATA_PATH)
+    validations = generate_validation(table_dataframes,metadata)
+    validation_status = execute_validations(validations)
+    if not validation_status:
+        logger.error("Validation process has been failed, cannot proceed with apply rules process.")
+        return False
+    #fetch the entity file path from entity_master_df. fetch table from file_path
+    entity_File_Path = fetch_entity_path(entity_master_df,VAR_ENTITY_ID)
+    if not entity_File_Path:
+        return False
+    # load entity df
+    entity_data_df=load_entity_data(entity_File_Path,spark)
     # apply dq
-    execution_plan_with_rule_df = merge_plans_with_rules(execution_plan_df,rule_master_filtered_df)
-
-    dq_execution(execution_plan_with_rule_df,entity_data_df,spark)
-
+    execution_plans_with_rules_df = join_execution_plan_with_rules(execution_plan_filtered_df,rule_master_filtered_df)
+    execute_data_quality_checks(execution_plans_with_rules_df,entity_data_df,spark)
 
 if __name__ == "__main__":
     main()
