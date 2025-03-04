@@ -14,7 +14,7 @@
           "foreign_key": true,
           "references":
             {
-                  "table": "df_rule_master",
+                  "table": "dq_rule_master",
                   "column": "rule_id"
             }
         },

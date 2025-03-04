@@ -55,7 +55,7 @@
 | TC_001     | All values match the expected value                  | Column contains only expected values    | (None, True, None)                                               |  Pass |
 | TC_002     | Some values differ from the expected value           | Column contains different values        | (DataFrame with invalid records, False, Error message)           |  Fail |
 | TC_003     | No values match the expected value                   | All values are different                | (DataFrame with all records, False, Error message)               |  Fail |
-| TC_005     | Column contains NULL values only                     | All values are NULL                     | (DataFrame with NULLs, False, Error message)                     |  Fail |
+| TC_004     | Column contains NULL values only                     | All values are NULL                     | (DataFrame with NULLs, False, Error message)                     |  Fail |
 
 
 # Test Cases for `date_format_check` Function

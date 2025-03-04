@@ -1,2 +1,2 @@
-def custom_rule(params):
+def custom_rule():
     print("Custome rule")

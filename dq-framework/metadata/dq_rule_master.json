@@ -1,6 +1,6 @@
 
 {
-    "df_rule_master": {
+    "dq_rule_master": {
       "columns": [
         {
           "name": "rule_id",
