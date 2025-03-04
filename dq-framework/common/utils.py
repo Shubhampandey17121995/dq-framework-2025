@@ -25,7 +25,7 @@ def join_execution_plan_with_rules(execution_plan_df,rules_df):
         logger.error(f"Exception occured in join_execution_plan_with_rules(): {e}")
 
 # fetch path from entity master table path
-def fetch_entity_path(entity_master_df,entity_id):
+def fetch_entity_path(entity_master_df, entity_id):
     try:
         # Filter the dataframe for the specific entity_id and select file_path
         result = entity_master_df.filter(col("entity_id") == entity_id).select("file_path").first()
@@ -36,6 +36,7 @@ def fetch_entity_path(entity_master_df,entity_id):
             return result["file_path"]
         else:
             logger.error(f"No file path found for entity_id: {entity_id}")
+            logger.warning(f"No file path found for entity_id: {entity_id}")
             return None
     except Exception as e:
         logger.error(f"Error fetching file path for entity_id: {entity_id} - {e}")
@@ -68,4 +69,3 @@ def fetch_filtered_rules(rule_list,rule_master_df):
         # Log error if filtering fails
         logger.error(f"Error filtering rules: {e}")
         return None
-

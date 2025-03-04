@@ -2,6 +2,7 @@ from pyspark.sql import SparkSession
 from common.custom_logger import getlogger
 from common.constants import *
 logger = getlogger()
+
 """
 def createSparkSession():
     spark = SparkSession.builder \

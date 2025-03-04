@@ -52,6 +52,5 @@ def main():
     execution_plans_with_rules_df = join_execution_plan_with_rules(execution_plan_filtered_df,rule_master_filtered_df)
     execute_data_quality_checks(execution_plans_with_rules_df,entity_data_df,spark)
 
-
 if __name__ == "__main__":
     main()
