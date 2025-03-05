@@ -1,7 +1,6 @@
 from pyspark.sql import SparkSession
 from common.custom_logger import *
 from common.constants import *
-#logger = getlogger()
 import logging
 logger = get_logger()
 
