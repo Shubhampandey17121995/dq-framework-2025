@@ -9,8 +9,10 @@ from Utilities.execution_result_saver import save_execution_result, save_invalid
 from common.constants import VAR_BAD_RECORD_PATH
 from common.constants import EXECUTION_RESULTS_SCHEMA
 from datetime import datetime
-from common.custom_logger import getlogger
-logger = getlogger()
+from common.custom_logger import *
+#logger = getlogger()
+import logging
+logger = get_logger()
 
 """
         This function applies a list of data quality (DQ) rules to a given entity dataset.
@@ -158,7 +160,7 @@ def execute_data_quality_rules(entity_data_df, execution_plans_list,spark):
                         return False
                 
         except Exception as e:
-                logger.error(f"Exception occured in apply_rules(): {e}")
+                logger.error(f"[DQ_RULE_EXECUTION] Exception occured in apply_rules(): {e}")
                 return False
 
 

@@ -2,8 +2,10 @@ import sys
 import os
 from common.utils import get_active_execution_plans
 from Utilities.apply_rules import execute_data_quality_rules
-from common.custom_logger import getlogger
-logger = getlogger()
+from common.custom_logger import *
+#logger = getlogger()
+import logging
+logger = get_logger()
 
 """
 Executes data quality (DQ) validation by fetching the execution plan and applying rules
@@ -42,6 +44,6 @@ def execute_data_quality_checks(execution_plan_with_rules_df,entity_data_df,spar
             return False
     except Exception as e:
         # Handle any unexpected exceptions and log the error
-        logger.error(f"Exception occurred in execute_data_quality_checks():{e}")
+        logger.error(f"[DQ_CHECK_COMPLETED] Exception occurred in execute_data_quality_checks():{e}")
         return False
 

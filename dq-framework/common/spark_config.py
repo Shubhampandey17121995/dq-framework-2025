@@ -1,7 +1,8 @@
 from pyspark.sql import SparkSession
-from common.custom_logger import getlogger
+from common.custom_logger import *
 from common.constants import *
-logger = getlogger()
+import logging
+logger = get_logger()
 
 """
 def createSparkSession():
@@ -17,8 +18,8 @@ def createSparkSession():
         .getOrCreate()
     logger.info("Created spark session")
     return spark
-"""
 
+"""
 def createSparkSession():
     spark = SparkSession.builder \
         .appName("IcebergTableReader") \

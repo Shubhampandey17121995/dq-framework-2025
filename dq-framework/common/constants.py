@@ -26,12 +26,20 @@ EXECUTION_RESULTS_SCHEMA = StructType([
 # entity id
 VAR_ENTITY_ID = None
 
+
 # config table paths
 VAR_S3_RULE_MASTER_PATH = "s3tablesbucket.dq_testdb2.dq_rule_master"
 VAR_S3_ENTITY_MASTER_PATH = "s3tablesbucket.dq_testdb2.dq_entity_master"
 VAR_S3_EXECUTION_PLAN_PATH = "s3tablesbucket.dq_testdb2.dq_execution_plan"
 VAR_S3_EXECUTION_RESULT_PATH = "s3tablesbucket.dq_testdb2.dq_execution_result"
 
+"""
+# config table paths
+VAR_S3_RULE_MASTER_PATH = "job_catalog.dq_testdb2.df_rule_master"
+VAR_S3_ENTITY_MASTER_PATH = "job_catalog.dq_testdb2.dq_entity_master"
+VAR_S3_EXECUTION_PLAN_PATH = "job_catalog.dq_testdb2.dq_execution_plan"
+VAR_S3_EXECUTION_RESULT_PATH = "job_catalog.dq_testdb2.dq_execution_result"
+"""
 
 #s3table bucket ARN id
 MY_TABLE_BUCKET_ARN="arn:aws:s3tables:us-east-1:971996090633:bucket/dq-framework"
@@ -52,11 +60,20 @@ REQUIRED_METADATA_FILES = {
     "dq_execution_plan": "dq_execution_plan.json"
 }
 
+"""
+# Required table metadata old
+REQUIRED_METADATA_FILES = {
+    "dq_entity_master": "dq_entity_master.json",
+    "df_rule_master": "dq_rule_master.json",
+    "dq_execution_plan": "dq_execution_plan.json"
+}
+"""
 
 # validation to be performed
 DATAYPE_VALIDATION = "Column data type validation"
 NULLABLE_VALIDATION = "Nullable constraint validation"
 PRIMARY_KEY_UNIQUENESS_VALIDATION = "Primary key uniqueness validation"
+
 
 # DataFrames dictionary to store table data
 table_dataframes  = {
@@ -64,3 +81,11 @@ table_dataframes  = {
     "dq_rule_master": None,
     "dq_execution_plan": None
 }
+
+"""
+# DataFrames dictionary to store table data old
+table_dataframes  = {
+    "dq_entity_master": None,
+    "df_rule_master": None,
+    "dq_execution_plan": None
+}"""

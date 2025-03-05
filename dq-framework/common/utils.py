@@ -1,7 +1,9 @@
 from pyspark.sql.functions import col
 from common.constants import VAR_ENTITY_ID
-from common.custom_logger import getlogger
-logger = getlogger()
+from common.custom_logger import *
+#logger = getlogger()
+import logging
+logger = get_logger()
 
 #Extracts the active execution plan from the provided DataFrame by filtering rows where
 #'is_active' is "Y". Converts the filtered data into a list of tuples for further processing.
@@ -11,8 +13,7 @@ def get_active_execution_plans(execution_plan_with_rule_df):
         logger.info("[DQ_GET_ACTIVE_PLANS] Active execution plans fetched successfully from execution plan table.")
         return plan_list
     except Exception as e:
-        logger.error(f"Exception occured in fetch_execution_plan(): {e}")
-
+        logger.error(f"[DQ_GET_ACTIVE_PLANS] Exception occured in fetch_execution_plan(): {e}")
 
 #Merges the execution plan DataFrame with the rules DataFrame using 'rule_id' as the key.
 #Drops duplicate or unnecessary columns and orders the result by 'ep_id'.
@@ -22,7 +23,7 @@ def join_execution_plan_with_rules(execution_plan_df,rules_df):
         logger.info(f"[DQ_JOIN_PLANS_AND_RULES] Execution plans and rules joined successfully for data quality processing.")
         return execution_plan_with_rules_df
     except Exception as e:
-        logger.error(f"Exception occured in join_execution_plan_with_rules(): {e}")
+        logger.error(f"[DQ_JOIN_PLANS_AND_RULES] Exception occured in join_execution_plan_with_rules(): {e}")
 
 # fetch path from entity master table path
 def fetch_entity_path(entity_master_df, entity_id):

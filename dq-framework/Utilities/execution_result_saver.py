@@ -4,8 +4,10 @@ from common.constants import VAR_S3_EXECUTION_RESULT_PATH
 from datetime import datetime
 from common.constants import VAR_BAD_RECORD_PATH,VAR_GOOD_RECORD_PATH
 from pyspark.sql.functions import lit
-from common.custom_logger import getlogger
-logger = getlogger()
+from common.custom_logger import *
+#logger = getlogger()
+import logging
+logger = get_logger()
 
 #Saves execution results of data quality checks to an Iceberg table in S3, partitioned by date and entity_id.
 #Logs success or failure messages based on the save operation.
@@ -21,7 +23,7 @@ def save_execution_result(result_df,entity_id):
                 logger.info(f"[DQ_RESULT_SAVE] Result data saved for Entity id:{entity_id}. STATUS:'SUCCESS'")
         except Exception as e:
                 # Log error if an exception occurs while saving the results
-                logger.error(f"Exception occured during saving the result records for entity_id={entity_id}: {e}")
+                logger.error(f"[DQ_RESULT_SAVE] Exception occured during saving the result records for entity_id={entity_id}: {e}")
 
 #Saves records that fail data quality checks to a Parquet file in S3, partitioned by date and entity_id.
 #Logs success or failure messages based on the save operation.
@@ -41,7 +43,7 @@ def save_invalid_records(error_records_df,entity_id):
                 logger.info(f"[DQ_INVALID_RECORDS_SAVE] Invalid records saved for entity_id {entity_id}. STATUS:'SUCCESS'")
         except Exception as e:
                 # Log error if an exception occurs while saving bad records
-                logger.error(f"Exception occured in save_bad_records() for entity_id={entity_id}: {e}")
+                logger.error(f"[DQ_INVALID_RECORDS_SAVE] Exception occured in save_bad_records() for entity_id={entity_id}: {e}")
 
 #Saves records that pass data quality checks to a Parquet file in S3, partitioned by date and entity_id.
 #Logs success or failure messages based on the save operation.
@@ -61,4 +63,4 @@ def save_valid_records(error_records_df,entity_id):
                 logger.info(f"[DQ_VALID_RECORDS_SAVE] Valid records saved for entity_id {entity_id}. STATUS:'SUCCESS'")
         except Exception as e:
                 # Log error if an exception occurs while saving good records
-                logger.error(f"Exception occured in save_good_records() for entity_id={entity_id}: {e}")
+                logger.error(f"[DQ_VALID_RECORDS_SAVE] Exception occured in save_good_records() for entity_id={entity_id}: {e}")

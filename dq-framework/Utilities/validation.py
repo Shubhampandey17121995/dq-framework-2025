@@ -3,10 +3,12 @@ import json
 from pyspark.sql.functions import col,trim,count
 from pyspark.sql import DataFrame 
 from common.constants import *
-from common.custom_logger import getlogger
+from common.custom_logger import *
 import importlib.resources as pkg_resources
+#logger = getlogger()
+import logging
+logger = get_logger()
 
-logger = getlogger()
 # Load required metadata for tables from JSON files
 def load_metadata():
     """
@@ -32,14 +34,14 @@ def load_metadata():
                 metadata = json.load(f)
             # Directly get columns, default to empty if not found
             required_metadata[table_name] = metadata.get(table_name, {}).get("columns", [])
-            logger.info(f"[DQ_VALIDATION] Metadata loaded successfully for table '{table_name}' from '{filename}'. STATUS:'SUCCESS'.")
+            logger.info(f"[DQ_LOAD_METADATA] Metadata loaded successfully for table '{table_name}' from '{filename}'. STATUS:'SUCCESS'.")
         # Handle file not found, invalid JSON, or key errors
         except (FileNotFoundError, json.JSONDecodeError, KeyError) as e:
-            logger.error(f"[DQ_VALIDATION] Error loading '{filename}' for table '{table_name}': {e}. STATUS:'FAILED'.")
+            logger.error(f"[DQ_LOAD_METADATA] Error loading '{filename}' for table '{table_name}': {e}. STATUS:'FAILED'.")
             required_metadata[table_name] = []
         # Handle unexpected errors gracefully
         except Exception as e:
-            logger.error(f"[DQ_VALIDATION] Unexpected error while loading '{filename}' for table '{table_name}': {e}. STATUS:'FAILED'.")
+            logger.error(f"[DQ_LOAD_METADATA] Unexpected error while loading '{filename}' for table '{table_name}': {e}. STATUS:'FAILED'.")
             required_metadata[table_name] = []
     # Return the compiled metadata dictionary
     return required_metadata
@@ -60,17 +62,17 @@ def extract_metadata_property(metadata, table_name, property_name):
 
     Returns:
         dict: A dictionary mapping column names to their respective property values.
-              Returns an empty dictionary if the table or property is not found.
+            Returns an empty dictionary if the table or property is not found.
     """
     try:
         # Ensure the table exists in metadata
         if table_name not in metadata:
-            logger.warning(f"[DQ_VALIDATION] Table '{table_name}' not found in metadata. STATUS:'FAILED'.")
+            logger.warning(f"[DQ_EXTRACT_METADATA_PROPERTY] Table '{table_name}' not found in metadata. STATUS:'FAILED'.")
             return {}
         # Retrieve the columns for the specified table
         columns = metadata[table_name]
         if not columns:
-            logger.warning(f"[DQ_VALIDATION] No columns found in metadata for table '{table_name}'. STATUS:'FAILED'.")
+            logger.warning(f"[DQ_EXTRACT_METADATA_PROPERTY] No columns found in metadata for table '{table_name}'. STATUS:'FAILED'.")
             return {}
         # Process and extract the requested property
         if property_name == "foreign_key":
@@ -86,10 +88,10 @@ def extract_metadata_property(metadata, table_name, property_name):
                 if property_name in col
             }
         # Log success and return the extracted metadata
-        logger.info(f"[DQ_VALIDATION] Fetched property '{property_name}' for table '{table_name}'. STATUS:'SUCCESS'.")
+        logger.info(f"[DQ_EXTRACT_METADATA_PROPERTY] Fetched property '{property_name}' for table '{table_name}'. STATUS:'SUCCESS'.")
         return result if result else {}
     except Exception as e:
-        logger.error(f"[DQ_VALIDATION] Exception occured in fetch_metadata_property : Error extracting '{property_name}' for '{table_name}': {e}. STATUS:'FAILED'.")
+        logger.error(f"[DQ_EXTRACT_METADATA_PROPERTY] Exception occured in fetch_metadata_property : Error extracting '{property_name}' for '{table_name}': {e}. STATUS:'FAILED'.")
         return {}
 
 
@@ -334,7 +336,8 @@ VALIDATION_STEPS = [
 def apply_validation(filter_df, metadata, table_name, entity_id):
     try:
         # Initialize validation flag as True
-        validation_passed = True        
+        validation_passed = True    
+        logger.info(f"Beginning  Validation Process for table '{table_name}'")    
         # Check if the DataFrame is empty, if not then only go for further validations
         if not is_df_empty(filter_df, table_name, entity_id):
             return False        
@@ -350,9 +353,9 @@ def apply_validation(filter_df, metadata, table_name, entity_id):
                 validation_passed = False        
         # Log the overall validation result
         if validation_passed:
-            logger.info(f"[DQ_VALIDATION] Validation process passed for table {table_name} for entity_id '{entity_id}'. STATUS:'SUCCESS'.")
+            logger.info(f"[DQ_VALIDATION] Metadata validation process passed for table {table_name} for entity_id '{entity_id}'. STATUS:'SUCCESS'.")
         else:
-            logger.info(f"[DQ_VALIDATION] Validation process failed for table {table_name} for entity_id '{entity_id}'. STATUS:'FAILED'.")        
+            logger.info(f"[DQ_VALIDATION] Metadata validation process failed for table {table_name} for entity_id '{entity_id}'. STATUS:'FAILED'.")        
         return validation_passed   
     # Return False in case of any unexpected exception   
     except Exception as e:
@@ -373,8 +376,7 @@ def execute_validations(validations):
         # Iterate through each validation function and execute it
         for validation_func, args in validations:
             try:
-                if not validation_func(*args):
-                    logger.error("[DQ_VALIDATION] Metadata validation failed! Process further validations. STATUS:'FAILED'.")
+                if not validation_func(*args):                    
                     validation_passed = False
             except Exception as e:
                 logger.error(f"[DQ_VALIDATION] Exception during metadata validation: {str(e)}. STATUS:'FAILED'.")
