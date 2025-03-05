@@ -9,10 +9,13 @@ from Utilities.table_loader import *
 from Utilities.validation import *
 from Utilities.dq__execution import execute_data_quality_checks
 # initialize logger
-logger = getlogger()
+#logger = getlogger()
+
 # take entity_id as input paramater and save it in constants
-args = getResolvedOptions(sys.argv, ['entity_id'])
+args = getResolvedOptions(sys.argv, ['entity_id','batch_id'])
 constants.VAR_ENTITY_ID = args['entity_id']
+VAR_BATCH_ID = args['batch_id']
+logger = logger_init(VAR_BATCH_ID)
 
 def main():
 

@@ -1,6 +1,8 @@
 from pyspark.sql.functions import col
-from common.custom_logger import getlogger
-logger = getlogger()
+from common.custom_logger import *
+#logger = getlogger()
+import logging
+logger = get_logger()
 
 # Load configuration table data
 def filter_config_by_entity(df, entity_id):
@@ -52,5 +54,6 @@ def load_entity_data(spark,entity_path):
                 logger.info(f"[ENTITY DATA LOADER] Attempting to read file: {entity_path} as {file_format.upper()}")
                 df = spark.read.format(file_format).option("header", "true").option("inferSchema", "true").load(entity_path)
                 logger.info(f"[ENTITY DATA LOADER] Successfully read file as {file_format.upper()}")
+                return df
         except Exception as e:
                 logger.error(f"[ENTITY DATA LOADER] Error reading file {entity_path}: {e}\nUnsupported or unknown file format.")

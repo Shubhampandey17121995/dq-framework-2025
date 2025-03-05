@@ -1,6 +1,8 @@
 from pyspark.sql.functions import trim, col, length,to_date
-from common.custom_logger import getlogger
-logger = getlogger()
+from common.custom_logger import *
+#logger = getlogger()
+import logging
+logger = get_logger()
 
 # Checks for null values in the specified column of the DataFrame.
 # Returns a DataFrame of null records, a success flag, and an error message if nulls are found.
